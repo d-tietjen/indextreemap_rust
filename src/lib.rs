@@ -257,22 +257,23 @@ impl<K: Ord, V> IndexTreeMap<K, V> {
         self.root.get_mut_from_index(id).map(|item| item.1)
     }
 
-    //     /// Returns the index of the corresponding key.
-    //     ///
-    //     /// # Example
-    //     ///
-    //     /// Basic usage:
-    //     /// ```rust
-    //     /// use indextreemap::IndexTreeMap;
-    //     ///
-    //     /// let mut tree = IndexTreeMap::new();
-    //     /// tree.insert(1, "a".to_string());
-    //     /// assert_eq!(tree.get_index_from_key(&1), Some(0));
-    //     /// assert_eq!(tree.get_index_from_key(&2), None);
-    //     /// ```
-    //     pub fn get_index_from_key(&self, key: &K) -> Option<usize> {
-    //         self.root.get_index_from_key(key)
-    //     }
+    /// Returns the index of the corresponding key.
+    ///
+    /// # Example
+    ///
+    /// Basic usage:
+    /// ```rust
+    /// use indextreemap::IndexTreeMap;
+    ///
+    /// let mut tree = IndexTreeMap::new();
+    /// tree.insert(1, "a".to_string());
+    /// assert_eq!(tree.get_index_from_key(&1), Some(0));
+    /// assert_eq!(tree.get_index_from_key(&2), None);
+    /// ```
+    pub fn get_index_from_key(&self, key: &K) -> Option<usize> {
+        let usize = 0;
+        self.root.get_index_from_key(key, usize)
+    }
 
     /// Returns a reference to the key corresponding to the index.
     ///
@@ -600,42 +601,59 @@ impl<K: Default + Ord + Clone, V: Default + Clone> IndexTreeMap<K, V> {
     }
 }
 
-// impl<K: Default + Ord + Clone + fmt::Debug + Hash, V: Default + Clone + fmt::Debug>
-//     IndexTreeMap<K, V>
-// {
-//     /// Splits the map into two at the given key. Returns everything after the given key, including the key.
-//     ///
-//     /// # Example
-//     ///
-//     /// Basic usage:
-//     /// ```rust
-//     /// use indextreemap::IndexTreeMap;
-//     ///
-//     /// let mut a = IndexTreeMap::new();
-//     /// a.insert(1, "a");
-//     /// a.insert(2, "b");
-//     /// a.insert(13, "c");
-//     /// a.insert(17, "d");
-//     /// a.insert(41, "e");
-//     ///
-//     /// let b = a.split_off(&13);
-//     ///
-//     /// assert_eq!(a.len(), 2);
-//     /// assert_eq!(b.len(), 3);
-//     /// ```
-//     pub fn split_off(&mut self, key: &K) -> IndexTreeMap<K, V> {
-//         if self.is_empty() {
-//             return IndexTreeMap::new();
-//         }
+impl<K: Default + Ord + Clone, V: Default + Clone> IndexTreeMap<K, V> {
+    /// Splits the map into two at the given key. Returns everything after the given key, including the key.
+    ///
+    /// # Example
+    ///
+    /// Basic usage:
+    /// ```rust
+    /// use indextreemap::IndexTreeMap;
+    ///
+    /// let mut a = IndexTreeMap::new();
+    /// a.insert(1, "a");
+    /// a.insert(2, "b");
+    /// a.insert(13, "c");
+    /// a.insert(17, "d");
+    /// a.insert(41, "e");
+    ///
+    /// let b = a.split_off(&13);
+    ///
+    /// assert_eq!(a.len(), 2);
+    /// assert_eq!(b.len(), 3);
+    /// ```
+    pub fn split_off(&mut self, key: &K) -> IndexTreeMap<K, V> {
+        if self.is_empty() {
+            return IndexTreeMap::new();
+        }
 
-//         let node = self.root.split_off(key);
-//         let map = IndexTreeMap {
-//             root: node.0,
-//             size: node.1,
-//         };
-//         self.size -= map.size;
-//         map
-//     }
+        if let Some(pointer) = self.root.split_off(key) {
+            let size = pointer.counter;
+            self.root.n = self.root.keys.iter().filter(|item| item.is_some()).count();
+            let mut new_tree = IndexTreeMap {
+                root: pointer.child,
+                size,
+            };
+
+            self.root.fill_pointers();
+            new_tree.root.fill_pointers();
+
+            if self.root.is_empty() {
+                self.root.fill_empty_root();
+            }
+
+            if new_tree.root.is_empty() {
+                self.root.fill_empty_root()
+            }
+
+            self.size -= new_tree.size;
+
+            new_tree
+        } else {
+            IndexTreeMap::new()
+        }
+    }
+}
 
 //     /// Splits the map into two at the given index. Returns everything after the given key, including the key.
 //     ///

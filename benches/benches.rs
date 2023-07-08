@@ -212,34 +212,34 @@ fn bench_compare_values(c: &mut Criterion) {
     group.finish();
 }
 
-// fn bench_compare_split_off(c: &mut Criterion) {
-//     let mut btree = BTreeMap::new();
-//     let mut indextree = IndexTreeMap::new();
+fn bench_compare_split_off(c: &mut Criterion) {
+    let mut btree = BTreeMap::new();
+    let mut indextree = IndexTreeMap::new();
 
-//     let mut group: criterion::BenchmarkGroup<'_, criterion::measurement::WallTime> =
-//         c.benchmark_group("Trees");
+    let mut group: criterion::BenchmarkGroup<'_, criterion::measurement::WallTime> =
+        c.benchmark_group("Trees");
 
-//     for i in 0..SIZE {
-//         indextree.insert(i, i.to_string());
-//         btree.insert(i, i.to_string());
-//     }
+    for i in 0..SIZE {
+        indextree.insert(i, i.to_string());
+        btree.insert(i, i.to_string());
+    }
 
-//     let key = SIZE / 2;
+    let key = SIZE / 2;
 
-//     let index = &50u64;
+    let index = &50u64;
 
-//     group.bench_with_input(
-//         BenchmarkId::new("BTreeMap Split_Off", index),
-//         index,
-//         |b, _i| b.iter(|| btree.split_off(&key)),
-//     );
-//     group.bench_with_input(
-//         BenchmarkId::new("IndexTree Split_Off", index),
-//         index,
-//         |b, _i| b.iter(|| indextree.split_off(&key)),
-//     );
-//     group.finish();
-// }
+    group.bench_with_input(
+        BenchmarkId::new("BTreeMap Split_Off", index),
+        index,
+        |b, _i| b.iter(|| btree.split_off(&key)),
+    );
+    group.bench_with_input(
+        BenchmarkId::new("IndexTree Split_Off", index),
+        index,
+        |b, _i| b.iter(|| indextree.split_off(&key)),
+    );
+    group.finish();
+}
 
 criterion_group!(
     benches,
@@ -250,6 +250,6 @@ criterion_group!(
     bench_compare_iter,
     bench_compare_keys,
     bench_compare_values,
-    // bench_compare_split_off
+    bench_compare_split_off
 );
 criterion_main!(benches);

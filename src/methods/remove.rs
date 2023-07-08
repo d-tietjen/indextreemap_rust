@@ -1,11 +1,8 @@
 use std::cmp::Ordering::{Equal, Greater, Less};
 
-use crate::{
-    stc::{Node},
-    KEY_ARRAY, POINTER_ARRAY,
-};
+use crate::{stc::Node, KEY_ARRAY, POINTER_ARRAY};
 
-impl<K: Ord, V> Node<K, V> {
+impl<K: Ord + Clone, V: Clone> Node<K, V> {
     pub fn remove(&mut self, key: &K) -> Option<(K, V)> {
         if self.leaf {
             'search: for index in 0..KEY_ARRAY {
@@ -66,7 +63,9 @@ impl<K: Ord, V> Node<K, V> {
             None
         }
     }
+}
 
+impl<K: Ord, V> Node<K, V> {
     pub fn node_remove_key(&mut self, index: usize) -> Option<(K, V)> {
         // if both pointer children pointers[index] + pointers[index+1] are less than KEY_ARRAY, then we can merge the right pointer to the left pointer
         let output = self.keys[index].take().map(|item| (*item.key, *item.value));
@@ -76,7 +75,7 @@ impl<K: Ord, V> Node<K, V> {
         if let [Some(left_pointer), Some(right_pointer)] = self.pointers[index..index + 2].as_mut()
         {
             if left_pointer.child.n + right_pointer.child.n < KEY_ARRAY {
-                self.merge_nodes(index);
+                self.merge_pointers_from_removed_node(index);
             } else {
                 self.replace_removed_key(index);
             }
@@ -86,7 +85,7 @@ impl<K: Ord, V> Node<K, V> {
         output
     }
 
-    pub fn merge_nodes(&mut self, index: usize) {
+    pub fn merge_pointers_from_removed_node(&mut self, index: usize) {
         if let [Some(left_pointer), Some(right_pointer)] = self.pointers[index..index + 2].as_mut()
         {
             left_pointer.counter += right_pointer.counter;

@@ -39,6 +39,48 @@ impl<K: Ord, V> Node<K, V> {
         None
     }
 
+    pub fn get_index_from_key(&self, key: &K, mut usize: usize) -> Option<usize> {
+        'search: for index in 0..KEY_ARRAY {
+            match &self.keys[index] {
+                Some(item) => match key.cmp(&item.key) {
+                    Less => {
+                        if let Some(pointer) = &self.pointers[index] {
+                            return pointer.child.get_index_from_key(key, usize);
+                        } else {
+                            return None;
+                        }
+                    }
+                    Equal => return Some(usize),
+                    Greater => {
+                        if index >= KEY_ARRAY - 1 {
+                            if let Some(pointer) = &self.pointers[index + 1] {
+                                return pointer.child.get_index_from_key(key, usize);
+                            } else {
+                                return None;
+                            }
+                        } else {
+                            usize += if let Some(pointer) = &self.pointers[index] {
+                                pointer.counter
+                            } else {
+                                0
+                            };
+                            usize += 1;
+                            continue 'search;
+                        }
+                    }
+                },
+                None => {
+                    if let Some(pointer) = &self.pointers[index] {
+                        return pointer.child.get_index_from_key(key, usize);
+                    } else {
+                        return None;
+                    }
+                }
+            }
+        }
+        None
+    }
+
     pub fn get_mut(&mut self, key: &K) -> Option<(&mut K, &mut V)> {
         'search: for (index, item) in self.keys.iter_mut().enumerate() {
             match item {

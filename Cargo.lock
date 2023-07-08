@@ -364,7 +364,7 @@ dependencies = [
 
 [[package]]
 name = "indextreemap"
-version = "0.1.20"
+version = "0.1.21"
 dependencies = [
  "criterion",
  "hex",

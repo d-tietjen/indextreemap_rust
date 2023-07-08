@@ -7,6 +7,7 @@ impl<K, V> Node<K, V> {
     pub fn take_keys(&mut self) -> [Option<Box<Item<K, V>>>; KEY_ARRAY] {
         let mut array: [Option<Box<Item<K, V>>>; KEY_ARRAY] = Default::default();
 
+        #[allow(clippy::needless_range_loop)]
         for index in 0..KEY_ARRAY {
             array[index] = self.keys[index].take();
         }
@@ -15,6 +16,7 @@ impl<K, V> Node<K, V> {
     pub fn take_pointers(&mut self) -> [Option<Pointer<K, V>>; POINTER_ARRAY] {
         let mut array: [Option<Pointer<K, V>>; POINTER_ARRAY] = Default::default();
 
+        #[allow(clippy::needless_range_loop)]
         for index in 0..POINTER_ARRAY {
             array[index] = self.pointers[index].take();
         }
