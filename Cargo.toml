@@ -1,0 +1,25 @@
+[package]
+name = "indextreemap"
+version = "0.1.21"
+edition = "2021"
+description = "A BTreeMap implementation that allows for key and or positional insertion and retreival."
+catagories = ["data-structures"]
+license = "MIT"
+readme = "README.md"
+repository = "https://github.com/d-tietjen/IndexTreeMap"
+keywords = ["tree", "btree", "btreemap", "index", "indexing"]
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
+serde = { version = "1.0", features = ["derive"] }
+
+[dev-dependencies]
+hex = "0.4.3"
+criterion = "0.5.1"
+rand = "0.8.5"
+pprof = { version = "0.11.1", features = ["flamegraph"] }
+serde_json = "1.0.97"
+
+[[bench]]
+name = "benches"
+harness = false
