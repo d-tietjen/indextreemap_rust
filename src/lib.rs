@@ -11,6 +11,8 @@ pub mod stc;
 pub const KEY_ARRAY: usize = 13;
 pub const POINTER_ARRAY: usize = KEY_ARRAY + 1;
 
+use std::fmt::Debug;
+
 use methods::iter::{IndexTreeIterator, IndexTreeKeys, IndexTreeValues};
 // use methods::iter::{IndexTreeIterator, IndexTreeKeys, IndexTreeValues};
 use serde::{Deserialize, Serialize};
@@ -653,39 +655,56 @@ impl<K: Default + Ord + Clone, V: Default + Clone> IndexTreeMap<K, V> {
             IndexTreeMap::new()
         }
     }
+
+    /// Splits the map into two at the given index. Returns everything after the given key, including the key.
+    ///
+    /// # Example
+    ///
+    /// Basic usage:
+    /// ```rust
+    /// use indextreemap::IndexTreeMap;
+    ///
+    /// let mut a = IndexTreeMap::new();
+    /// a.insert(1, "a");
+    /// a.insert(2, "b");
+    /// a.insert(3, "c");
+    /// a.insert(17, "d");
+    /// a.insert(41, "e");
+    ///
+    /// let b = a.split_off_from_index(2);
+    ///
+    /// assert_eq!(a.len(), 2);
+    /// assert_eq!(b.len(), 3);
+    /// ```
+    pub fn split_off_from_index(&mut self, index: usize) -> IndexTreeMap<K, V> {
+        if self.is_empty() {
+            return IndexTreeMap::new();
+        }
+
+        if let Some(pointer) = self.root.split_off_at_index(index) {
+            let size = pointer.counter;
+            self.root.n = self.root.keys.iter().filter(|item| item.is_some()).count();
+            let mut new_tree = IndexTreeMap {
+                root: pointer.child,
+                size,
+            };
+
+            self.root.fill_pointers();
+            new_tree.root.fill_pointers();
+
+            if self.root.is_empty() {
+                self.root.fill_empty_root();
+            }
+
+            if new_tree.root.is_empty() {
+                self.root.fill_empty_root()
+            }
+
+            self.size -= new_tree.size;
+
+            new_tree
+        } else {
+            IndexTreeMap::new()
+        }
+    }
 }
-
-//     /// Splits the map into two at the given index. Returns everything after the given key, including the key.
-//     ///
-//     /// # Example
-//     ///
-//     /// Basic usage:
-//     /// ```rust
-//     /// use indextreemap::IndexTreeMap;
-//     ///
-//     /// let mut a = IndexTreeMap::new();
-//     /// a.insert(1, "a");
-//     /// a.insert(2, "b");
-//     /// a.insert(3, "c");
-//     /// a.insert(17, "d");
-//     /// a.insert(41, "e");
-//     ///
-//     /// let b = a.split_off_from_index(2);
-//     ///
-//     /// assert_eq!(a.len(), 2);
-//     /// assert_eq!(b.len(), 3);
-//     /// ```
-//     pub fn split_off_from_index(&mut self, index: usize) -> IndexTreeMap<K, V> {
-//         if self.is_empty() {
-//             return IndexTreeMap::new();
-//         }
-
-//         let node = self.root.split_off_from_index(index);
-//         let map = IndexTreeMap {
-//             root: node.0,
-//             size: node.1,
-//         };
-//         self.size -= map.size;
-//         map
-//     }
-// }

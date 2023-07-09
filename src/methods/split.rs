@@ -25,13 +25,6 @@ impl<K: Default + Ord + Clone, V: Default + Clone> Node<K, V> {
                         self.fill_pointers();
                         output.fill_pointers();
 
-                        // if output.is_empty() {
-                        //     output.fill_empty_node();
-                        // }
-                        // if self.is_empty() {
-                        //     self.fill_empty_node();
-                        // }
-
                         output.n = output.keys.iter().filter(|item| item.is_some()).count();
                         let size = output.size();
                         return Some(Pointer {
@@ -46,13 +39,6 @@ impl<K: Default + Ord + Clone, V: Default + Clone> Node<K, V> {
 
                         self.fill_pointers();
                         output.fill_pointers();
-
-                        // if output.is_empty() {
-                        //     output.fill_empty_node();
-                        // }
-                        // if self.is_empty() {
-                        //     self.fill_empty_node();
-                        // }
 
                         let size = output.size();
                         return Some(Pointer {
@@ -77,13 +63,6 @@ impl<K: Default + Ord + Clone, V: Default + Clone> Node<K, V> {
                 self.fill_pointers();
                 output.fill_pointers();
 
-                // if output.is_empty() {
-                //     output.fill_empty_node();
-                // }
-                // if self.is_empty() {
-                //     self.fill_empty_node();
-                // }
-
                 output.n = output.keys.iter().filter(|item| item.is_some()).count();
                 let size = output.size();
                 return Some(Pointer {
@@ -94,6 +73,77 @@ impl<K: Default + Ord + Clone, V: Default + Clone> Node<K, V> {
         }
         // split parent
         // split child, put split section to parent.pointer[0]
+
+        None
+    }
+
+    pub fn split_off_at_index(&mut self, mut index: usize) -> Option<Pointer<K, V>> {
+        if self.leaf {
+            let mut output = self.split_at_index(index);
+            output.n = output.keys.iter().filter(|item| item.is_some()).count();
+            let size = output.size();
+            return Some(Pointer {
+                child: output,
+                counter: size,
+            });
+        } else {
+            for loc in 0..KEY_ARRAY {
+                if self.pointers[loc].is_some() {
+                    if index < self.pointers[loc].as_ref().unwrap().counter {
+                        let mut output = self.split_at_index(loc);
+                        let mut pointer = self.pointers[loc].as_mut().unwrap();
+                        output.pointers[0] = pointer.child.split_off_at_index(index);
+                        pointer.counter = pointer.child.size();
+                        // if pointer.child.is_empty() {
+                        //     pointer.child.fill_empty_node();
+                        //     output.fill_first_pointer()
+                        // }
+                        // self.fill_pointers();
+                        // output.fill_pointers();
+
+                        output.n = output.keys.iter().filter(|item| item.is_some()).count();
+                        let size = output.size();
+                        return Some(Pointer {
+                            child: output,
+                            counter: size,
+                        });
+                    } else {
+                        index -= self.pointers[loc].as_mut().unwrap().counter
+                    }
+
+                    if index == 0 {
+                        if self.keys[index].is_some() {
+                            let mut output = self.split_at_index(loc);
+                            output.fill_first_pointer();
+                            output.n = output.keys.iter().filter(|item| item.is_some()).count();
+                            self.fill_pointers();
+                            output.fill_pointers();
+
+                            let size = output.size();
+                            return Some(Pointer {
+                                child: output,
+                                counter: size,
+                            });
+                        }
+                    } else {
+                        index -= 1;
+                    }
+                } else {
+                    continue;
+                }
+            }
+
+            if let Some(pointer) = self.pointers[KEY_ARRAY].as_mut() {
+                if index < pointer.counter {
+                    let output = pointer.child.split_off_at_index(index);
+                    pointer.counter = pointer.child.size();
+
+                    return output;
+                } else {
+                    return None;
+                }
+            }
+        }
 
         None
     }

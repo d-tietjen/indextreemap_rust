@@ -238,6 +238,12 @@ fn bench_compare_split_off(c: &mut Criterion) {
         index,
         |b, _i| b.iter(|| indextree.split_off(&key)),
     );
+
+    group.bench_with_input(
+        BenchmarkId::new("IndexTree Split_Off Index", index),
+        index,
+        |b, _i| b.iter(|| indextree.split_off_from_index(key as usize)),
+    );
     group.finish();
 }
 

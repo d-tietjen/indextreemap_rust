@@ -203,6 +203,38 @@ pub mod tests {
         }
     }
 
+    #[test]
+    fn string_split_off_at_index() {
+        for a in 1..SCOPE {
+            let mut tree = IndexTreeMap::new();
+            for i in 0..a {
+                tree.insert(i.to_string(), i)
+            }
+
+            // println!("{tree:#?}");
+            let split_index = a / 3;
+
+            let tree_copy = tree.clone();
+            let split_key = tree_copy.get_key_from_index(split_index).unwrap();
+            let split_tree = tree.split_off_from_index(split_index);
+            // println!("{a}, SI: {split_index}, SK: {split_key}");
+            // println!("OLD TREE \n {tree:#?}");
+            // println!("NEW TREE: \n {split_tree:#?}");
+
+            // for (i, (k,v)) in tree.iter().enumerate() {
+            //     println!("{i}: {k} {v}");
+            // }
+
+            assert_eq!(tree.size + split_tree.size, a);
+            for (key, _) in tree.iter() {
+                assert!(key < split_key)
+            }
+            for (key, _) in split_tree.iter() {
+                assert!(key >= split_key)
+            }
+        }
+    }
+
     //* I32 TESTS *//
     // * * Expansive Testing has a time complexity of O(SCOPE * SCOPE)
     #[test]
@@ -625,7 +657,7 @@ pub mod tests {
     #[test]
     fn byte_array_split_off() {
         for a in 10..SCOPE {
-            let mut tree = IndexTreeMap::new();
+            let mut tree: IndexTreeMap<[u8; 8], usize> = IndexTreeMap::new();
             for i in 0..a {
                 tree.insert(i.to_le_bytes(), i)
             }
