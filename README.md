@@ -357,7 +357,7 @@ assert_eq!(first_value, Some(&"a"));
 
 
 
-### IndexTreeMap::remove() ***to be implemented***
+### IndexTreeMap::remove()
 
 Removes an item from the map from its corresponding key, returning the key-value pair that was previously in the map.
 
@@ -386,7 +386,7 @@ assert_eq!(tree.remove_from_index(0), (Some(1), Some("a".to_string())));
 assert_eq!(tree.remove_from_index(1), (None, None));
 ```
 
-### IndexTreeMap::replace() ***to be implemented***
+### IndexTreeMap::replace()
 
 Replaces an item from the map from its corresponding key, returning the key-value pair that was previously in the map.
 
@@ -401,7 +401,7 @@ tree.replace(1, "b".to_string());
 assert_eq!(tree.get(&1), Some(&"b".to_string()));
 ```
 
-### IndexTreeMap::replace_index() ***to be implemented***
+### IndexTreeMap::replace_index()
 
 Replaces an item from the map from its corresponding index, returning the key-value pair that was previously in the map.
 
@@ -416,7 +416,7 @@ tree.replace_index(0, "b".to_string());
 assert_eq!(tree.get(&1), Some(&"b".to_string()));
 ```
 
-### IndexTreeMap::split_off() ***to be implemented***
+### IndexTreeMap::split_off()
 
 Splits the map into two at the given key. Returns everything after the given key, including the key.
 
@@ -444,7 +444,7 @@ assert_eq!(b.get(&17), Some(&"d"));
 assert_eq!(b.get(&41), Some(&"e"));
 ```
 
-### IndexTreeMap::split_off_from_index() ***to be implemented***
+### IndexTreeMap::split_off_from_index()
 
 Splits the map into two at the given key. Returns everything after the given key, including the key.
 
