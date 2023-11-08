@@ -20,8 +20,8 @@ use stc::{
     Node,
     Output::{KeyExists, NewKeyPointer},
 };
-/// The structures library of the IndexTreeMap
 
+/// The structures library of the IndexTreeMap
 #[derive(Debug, Clone, Default, Serialize, Deserialize)]
 pub struct IndexTreeMap<K, V> {
     pub root: Box<Node<K, V>>,
@@ -33,7 +33,7 @@ impl<K: Default, V: Default> IndexTreeMap<K, V> {
     ///
     /// Does not allocate anything on its own.
     ///
-    /// # Example
+    /// ### Example
     ///
     /// Basic usage:
     /// ```rust
