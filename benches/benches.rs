@@ -1,10 +1,15 @@
 use std::collections::BTreeMap;
 
+use sha2::{Digest, Sha256};
+
 use criterion::{criterion_group, criterion_main, BenchmarkId, Criterion};
 use indextreemap::{self, IndexTreeMap};
-// use rand::Rng;
+// use pprof::criterion::{Output, PProfProfiler};
 
-const SIZE: u64 = 10_000;
+mod perf;
+
+const SIZE: u64 = 100_000;
+const SAMPLE: u64 = 100;
 
 fn bench_compare_insert(c: &mut Criterion) {
     let mut indextree = IndexTreeMap::new();
@@ -13,25 +18,23 @@ fn bench_compare_insert(c: &mut Criterion) {
     let mut group: criterion::BenchmarkGroup<'_, criterion::measurement::WallTime> =
         c.benchmark_group("Trees");
 
-    let index = &10u64;
-    group.sample_size(10);
     group.bench_with_input(
-        BenchmarkId::new("BTreeMap Insert", index.to_owned()),
-        index,
+        BenchmarkId::new("BTreeMap Insert", SAMPLE),
+        &SAMPLE,
         |b, _i| {
             b.iter(|| {
-                for index in 0..SIZE.to_owned() {
+                for index in 0..10000.to_owned() {
                     btree.insert(index, "placeholder".to_string());
                 }
             })
         },
     );
     group.bench_with_input(
-        BenchmarkId::new("IndexTree Insert", index),
-        index,
+        BenchmarkId::new("IndexTreeMap Insert", SAMPLE),
+        &SAMPLE,
         |b, _i| {
             b.iter(|| {
-                for index in 0..SIZE {
+                for index in 0..10000 {
                     indextree.insert(index, "placeholder".to_string());
                 }
             })
@@ -48,27 +51,25 @@ fn bench_compare_get(c: &mut Criterion) {
         c.benchmark_group("Trees");
 
     for i in 0..SIZE {
-        indextree.insert(i, i.to_string());
-        btree.insert(i, i.to_string());
+        indextree.insert(hash(i.to_le_bytes().as_slice()), i.to_string());
+        btree.insert(hash(i.to_le_bytes().as_slice()), i.to_string());
     }
 
     let key = SIZE / 2;
 
-    let index = &50u64;
-
     group.bench_with_input(
-        BenchmarkId::new("BTreeMap Get", index.to_owned()),
-        index,
-        |b, _i| b.iter(|| btree.get(&key)),
+        BenchmarkId::new("BTreeMap Get", SAMPLE),
+        &SAMPLE,
+        |b, _i| b.iter(|| btree.get(&hash(key.to_le_bytes().as_slice()))),
     );
     group.bench_with_input(
-        BenchmarkId::new("IndexTree Get Key", index),
-        index,
-        |b, _i| b.iter(|| indextree.get(&key)),
+        BenchmarkId::new("IndexTreeMap Get Key", SAMPLE),
+        &SAMPLE,
+        |b, _i| b.iter(|| indextree.get(&hash(key.to_le_bytes().as_slice()))),
     );
     group.bench_with_input(
-        BenchmarkId::new("IndexTree Get Index", index),
-        index,
+        BenchmarkId::new("IndexTreeMap Get Index", SAMPLE),
+        &SAMPLE,
         |b, _i| b.iter(|| indextree.get_from_index(key as usize)),
     );
     group.finish();
@@ -83,29 +84,27 @@ fn bench_compare_remove(c: &mut Criterion) {
         c.benchmark_group("Trees");
 
     for i in 0..SIZE {
-        indextree_index.insert(i, i.to_string());
-        indextree.insert(i, i.to_string());
-        btree.insert(i, i.to_string());
+        indextree_index.insert(hash(i.to_le_bytes().as_slice()), i.to_string());
+        indextree.insert(hash(i.to_le_bytes().as_slice()), i.to_string());
+        btree.insert(hash(i.to_le_bytes().as_slice()), i.to_string());
     }
 
     let key = SIZE / 2;
 
-    let index = &50u64;
-
     group.bench_with_input(
-        BenchmarkId::new("BTreeMap Remove", index.to_owned()),
-        index,
-        |b, _i| b.iter(|| btree.remove(&key)),
+        BenchmarkId::new("BTreeMap Remove", SAMPLE),
+        &SAMPLE,
+        |b, _i| b.iter(|| btree.remove(&hash(key.to_le_bytes().as_slice()))),
     );
     group.bench_with_input(
-        BenchmarkId::new("IndexTree Remove Key", index),
-        index,
-        |b, _i| b.iter(|| indextree.remove(&key)),
+        BenchmarkId::new("IndexTreeMap Remove Key", SAMPLE),
+        &SAMPLE,
+        |b, _i| b.iter(|| indextree.remove(&hash(key.to_le_bytes().as_slice()))),
     );
     // group.bench_with_input(
-    //     BenchmarkId::new("IndexTree Remove Index", index),
+    //     BenchmarkId::new("IndexTreeMap Remove Index", index),
     //     index,
-    //     |b, _i| b.iter(|| indextree_index.re(key as usize)),
+    //     |b, _i| b.iter(|| indextree_index.remove(key as usize)),
     // );
     group.finish();
 }
@@ -118,23 +117,21 @@ fn bench_compare_contains(c: &mut Criterion) {
         c.benchmark_group("Trees");
 
     for i in 0..SIZE {
-        indextree.insert(i, i.to_string());
-        btree.insert(i, i.to_string());
+        indextree.insert(hash(i.to_le_bytes().as_slice()), i.to_string());
+        btree.insert(hash(i.to_le_bytes().as_slice()), i.to_string());
     }
 
     let key = SIZE / 2;
 
-    let index = &50u64;
-
     group.bench_with_input(
-        BenchmarkId::new("BTreeMap Contains", index.to_owned()),
-        index,
-        |b, _i| b.iter(|| btree.contains_key(&key)),
+        BenchmarkId::new("BTreeMap Contains", SAMPLE.to_owned()),
+        &SAMPLE,
+        |b, _i| b.iter(|| btree.contains_key(&hash(key.to_le_bytes().as_slice()))),
     );
     group.bench_with_input(
-        BenchmarkId::new("IndexTree Contains", index),
-        index,
-        |b, _i| b.iter(|| indextree.contains_key(&key)),
+        BenchmarkId::new("IndexTreeMap Contains", SAMPLE),
+        &SAMPLE,
+        |b, _i| b.iter(|| indextree.contains_key(&hash(key.to_le_bytes().as_slice()))),
     );
     group.finish();
 }
@@ -147,8 +144,8 @@ fn bench_compare_iter(c: &mut Criterion) {
         c.benchmark_group("Trees");
 
     for i in 0..SIZE {
-        indextree.insert(i, i.to_string());
-        btree.insert(i, i.to_string());
+        indextree.insert(hash(i.to_le_bytes().as_slice()), i.to_string());
+        btree.insert(hash(i.to_le_bytes().as_slice()), i.to_string());
     }
 
     let index = &50u64;
@@ -156,9 +153,11 @@ fn bench_compare_iter(c: &mut Criterion) {
     group.bench_with_input(BenchmarkId::new("BTreeMap Iter", index), index, |b, _i| {
         b.iter(|| btree.iter())
     });
-    group.bench_with_input(BenchmarkId::new("IndexTree Iter", index), index, |b, _i| {
-        b.iter(|| indextree.iter())
-    });
+    group.bench_with_input(
+        BenchmarkId::new("IndexTreeMap Iter", index),
+        index,
+        |b, _i| b.iter(|| indextree.iter()),
+    );
     group.finish();
 }
 
@@ -170,18 +169,20 @@ fn bench_compare_keys(c: &mut Criterion) {
         c.benchmark_group("Trees");
 
     for i in 0..SIZE {
-        indextree.insert(i, i.to_string());
-        btree.insert(i, i.to_string());
+        indextree.insert(hash(i.to_le_bytes().as_slice()), i.to_string());
+        btree.insert(hash(i.to_le_bytes().as_slice()), i.to_string());
     }
 
-    let index = &50u64;
-
-    group.bench_with_input(BenchmarkId::new("BTreeMap Keys", index), index, |b, _i| {
-        b.iter(|| btree.keys())
-    });
-    group.bench_with_input(BenchmarkId::new("IndexTree Keys", index), index, |b, _i| {
-        b.iter(|| indextree.keys())
-    });
+    group.bench_with_input(
+        BenchmarkId::new("BTreeMap Keys", SAMPLE),
+        &SAMPLE,
+        |b, _i| b.iter(|| btree.keys()),
+    );
+    group.bench_with_input(
+        BenchmarkId::new("IndexTreeMap Keys", SAMPLE),
+        &SAMPLE,
+        |b, _i| b.iter(|| indextree.keys()),
+    );
     group.finish();
 }
 
@@ -193,20 +194,18 @@ fn bench_compare_values(c: &mut Criterion) {
         c.benchmark_group("Trees");
 
     for i in 0..SIZE {
-        indextree.insert(i, i.to_string());
-        btree.insert(i, i.to_string());
+        indextree.insert(hash(i.to_le_bytes().as_slice()), i.to_string());
+        btree.insert(hash(i.to_le_bytes().as_slice()), i.to_string());
     }
 
-    let index = &50u64;
-
     group.bench_with_input(
-        BenchmarkId::new("BTreeMap Values", index),
-        index,
+        BenchmarkId::new("BTreeMap Values", SAMPLE),
+        &SAMPLE,
         |b, _i| b.iter(|| btree.values()),
     );
     group.bench_with_input(
-        BenchmarkId::new("IndexTree Values", index),
-        index,
+        BenchmarkId::new("IndexTreeMap Values", SAMPLE),
+        &SAMPLE,
         |b, _i| b.iter(|| indextree.values()),
     );
     group.finish();
@@ -226,25 +225,29 @@ fn bench_compare_split_off(c: &mut Criterion) {
 
     let key = SIZE / 2;
 
-    let index = &50u64;
-
     group.bench_with_input(
-        BenchmarkId::new("BTreeMap Split_Off", index),
-        index,
+        BenchmarkId::new("BTreeMap Split_Off", SAMPLE),
+        &SAMPLE,
         |b, _i| b.iter(|| btree.split_off(&key)),
     );
     group.bench_with_input(
-        BenchmarkId::new("IndexTree Split_Off", index),
-        index,
+        BenchmarkId::new("IndexTreeMap Split_Off", SAMPLE),
+        &SAMPLE,
         |b, _i| b.iter(|| indextree.split_off(&key)),
     );
 
     group.bench_with_input(
-        BenchmarkId::new("IndexTree Split_Off Index", index),
-        index,
+        BenchmarkId::new("IndexTreeMap Split_Off Index", SAMPLE),
+        &SAMPLE,
         |b, _i| b.iter(|| indextree.split_off_from_index(key as usize)),
     );
     group.finish();
+}
+
+fn hash(n: &[u8]) -> String {
+    let mut sha256 = Sha256::new();
+    sha256.update(n);
+    hex::encode(sha256.finalize())
 }
 
 criterion_group!(
@@ -258,4 +261,10 @@ criterion_group!(
     bench_compare_values,
     bench_compare_split_off
 );
+// criterion_group! {
+//     name = benches;
+//     config = Criterion::default().with_profiler(PProfProfiler::new(100, Output::Flamegraph(None)));
+//     targets = bench_compare_insert, bench_compare_get, bench_compare_remove,bench_compare_contains,bench_compare_iter,bench_compare_keys,bench_compare_values,bench_compare_split_off
+// }
+
 criterion_main!(benches);

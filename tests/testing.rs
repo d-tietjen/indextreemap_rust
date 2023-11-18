@@ -2,30 +2,47 @@
 pub mod tests {
 
     use indextreemap::IndexTreeMap;
+    use sha2::{Digest, Sha256};
 
     const SCOPE: usize = 2_000;
+
+    fn hash(n: &[u8]) -> String {
+        let mut sha256 = Sha256::new();
+        sha256.update(n);
+        hex::encode(sha256.finalize())
+    }
+
+    #[test]
+    fn insert_test() {
+        let mut tree = IndexTreeMap::new();
+        for i in 0..SCOPE {
+            tree.insert(i.to_string(), i);
+        }
+
+        println!("{tree:#?}")
+    }
 
     #[test]
     fn clear_test() {
         let mut tree = IndexTreeMap::new();
         for i in 0..SCOPE {
-            tree.insert(i.to_string(), i)
+            tree.insert(hash(i.to_le_bytes().as_slice()), i)
         }
 
         for i in 0..SCOPE {
-            // println!("{i}: {:?}", tree.get(&i.to_string()));
-            assert!(tree.get(&i.to_string()).is_some());
+            // println!("{i}: {:?}", tree.get(&hash(i.to_le_bytes().as_slice())));
+            assert!(tree.get(&hash(i.to_le_bytes().as_slice())).is_some());
         }
 
         tree.clear();
 
         for i in 0..SCOPE {
-            tree.insert(i.to_string(), i)
+            tree.insert(hash(i.to_le_bytes().as_slice()), i)
         }
 
         for i in 0..SCOPE {
-            // println!("{i}: {:?}", tree.get(&i.to_string()));
-            assert!(tree.get(&i.to_string()).is_some());
+            // println!("{i}: {:?}", tree.get(&hash(i.to_le_bytes().as_slice())));
+            assert!(tree.get(&hash(i.to_le_bytes().as_slice())).is_some());
         }
     }
 
@@ -36,14 +53,14 @@ pub mod tests {
         let mut tree = IndexTreeMap::new();
         for i in 0..SCOPE {
             for j in 0..i {
-                tree.insert(j.to_string(), j)
+                tree.insert(hash(j.to_le_bytes().as_slice()), j)
             }
 
             // println!("{tree:#?}");
 
             for k in 0..i {
-                // println!("{i}: {:?}", tree.get(&i.to_string()));
-                assert!(tree.get(&k.to_string()).is_some());
+                // println!("{i}: {:?}", tree.get(&hash(i.to_le_bytes().as_slice())));
+                assert!(tree.get(&hash(k.to_le_bytes().as_slice())).is_some());
             }
         }
     }
@@ -52,14 +69,14 @@ pub mod tests {
     fn string_get() {
         let mut tree = IndexTreeMap::new();
         for i in 0..SCOPE {
-            tree.insert(i.to_string(), i)
+            tree.insert(hash(i.to_le_bytes().as_slice()), i)
         }
 
         // println!("{tree:#?}");
 
         for i in 0..SCOPE {
-            // println!("{i}: {:?}", tree.get(&i.to_string()));
-            assert!(tree.get(&i.to_string()).is_some());
+            // println!("{i}: {:?}", tree.get(&hash(i.to_le_bytes().as_slice())));
+            assert!(tree.get(&hash(i.to_le_bytes().as_slice())).is_some());
         }
     }
 
@@ -67,14 +84,14 @@ pub mod tests {
     fn string_get_mut() {
         let mut tree = IndexTreeMap::new();
         for i in 0..SCOPE {
-            tree.insert(i.to_string(), i)
+            tree.insert(hash(i.to_le_bytes().as_slice()), i)
         }
 
         // println!("{tree:#?}");
 
         for i in 0..SCOPE {
-            // println!("{i}: {:?}", tree.get_mut(&i.to_string()));
-            assert!(tree.get_mut(&i.to_string()).is_some());
+            // println!("{i}: {:?}", tree.get_mut(&hash(i.to_le_bytes().as_slice())));
+            assert!(tree.get_mut(&hash(i.to_le_bytes().as_slice())).is_some());
         }
     }
 
@@ -82,7 +99,7 @@ pub mod tests {
     fn string_get_index() {
         let mut tree = IndexTreeMap::new();
         for i in 0..SCOPE {
-            tree.insert(i.to_string(), i)
+            tree.insert(hash(i.to_le_bytes().as_slice()), i)
         }
 
         // println!("{tree:#?}");
@@ -97,14 +114,16 @@ pub mod tests {
     fn string_index_from_key() {
         let mut tree = IndexTreeMap::new();
         for i in 0..SCOPE {
-            tree.insert(i.to_string(), i)
+            tree.insert(hash(i.to_le_bytes().as_slice()), i)
         }
 
         // println!("{tree:#?}");
 
         for i in 0..SCOPE {
-            // println!("{i}: {:?}", tree.get_index_from_key(&i.to_string()));
-            assert!(tree.get_index_from_key(&i.to_string()).is_some());
+            // println!("{i}: {:?}", tree.get_index_from_key(&hash(i.to_le_bytes().as_slice())));
+            assert!(tree
+                .get_index_from_key(&hash(i.to_le_bytes().as_slice()))
+                .is_some());
         }
     }
 
@@ -112,7 +131,7 @@ pub mod tests {
     fn string_get_mut_index() {
         let mut tree = IndexTreeMap::new();
         for i in 0..SCOPE {
-            tree.insert(i.to_string(), i)
+            tree.insert(hash(i.to_le_bytes().as_slice()), i)
         }
 
         // println!("{tree:#?}");
@@ -127,11 +146,11 @@ pub mod tests {
     fn string_remove() {
         let mut tree = IndexTreeMap::new();
         for i in 0..SCOPE {
-            tree.insert(i.to_string(), i)
+            tree.insert(hash(i.to_le_bytes().as_slice()), i)
         }
 
         let removed = SCOPE / 3 + 1;
-        tree.remove(&removed.to_string());
+        tree.remove(&hash(removed.to_le_bytes().as_slice()));
 
         for (key, value) in tree.iter() {
             assert_ne!(key, &removed.to_string());
@@ -143,7 +162,7 @@ pub mod tests {
     // fn string_remove_index() {
     //     let mut tree = IndexTreeMap::new();
     //     for i in 0..SCOPE {
-    //         tree.insert(i.to_string(), i)
+    //         tree.insert(hash(i.to_le_bytes().as_slice()), i)
     //     }
 
     //     // println!("{tree:#?}");
@@ -167,15 +186,18 @@ pub mod tests {
     fn string_replace() {
         let mut tree = IndexTreeMap::new();
         for i in 0..SCOPE {
-            tree.insert(i.to_string(), i)
+            tree.insert(hash(i.to_le_bytes().as_slice()), i)
         }
 
         let removed = SCOPE / 3 + 1;
         assert_eq!(
-            tree.replace(&removed.to_string(), removed + 1),
+            tree.replace(&hash(removed.to_le_bytes().as_slice()), removed + 1),
             Some(removed)
         );
-        assert_eq!(tree.get(&removed.to_string()), Some(&(removed + 1)));
+        assert_eq!(
+            tree.get(&hash(removed.to_le_bytes().as_slice())),
+            Some(&(removed + 1))
+        );
     }
 
     #[test]
@@ -183,7 +205,7 @@ pub mod tests {
         for a in 10..SCOPE {
             let mut tree = IndexTreeMap::new();
             for i in 0..a {
-                tree.insert(i.to_string(), i)
+                tree.insert(hash(i.to_le_bytes().as_slice()), i)
             }
 
             // println!("{tree:#?}");
@@ -208,7 +230,7 @@ pub mod tests {
         for a in 1..SCOPE {
             let mut tree = IndexTreeMap::new();
             for i in 0..a {
-                tree.insert(i.to_string(), i)
+                tree.insert(hash(i.to_le_bytes().as_slice()), i)
             }
 
             // println!("{tree:#?}");
@@ -248,7 +270,7 @@ pub mod tests {
             // println!("{tree:#?}");
 
             for k in 0..i {
-                // println!("{i}: {:?}", tree.get(&i.to_string()));
+                // println!("{i}: {:?}", tree.get(&hash(i.to_le_bytes().as_slice())));
                 assert!(tree.get(&(k as i32)).is_some());
             }
         }
@@ -294,7 +316,7 @@ pub mod tests {
         // println!("{tree:#?}");
 
         for i in 0..SCOPE {
-            // println!("{i}: {:?}", tree.get_index_from_key(&i.to_string()));
+            // println!("{i}: {:?}", tree.get_index_from_key(&hash(i.to_le_bytes().as_slice())));
             assert!(tree.get_index_from_key(&(i as i32)).is_some());
         }
     }
@@ -395,7 +417,7 @@ pub mod tests {
             // println!("{tree:#?}");
 
             for k in 0..i {
-                // println!("{i}: {:?}", tree.get(&i.to_string()));
+                // println!("{i}: {:?}", tree.get(&hash(i.to_le_bytes().as_slice())));
                 assert!(tree.get(&k).is_some());
             }
         }
@@ -441,7 +463,7 @@ pub mod tests {
         // println!("{tree:#?}");
 
         for i in 0..SCOPE {
-            // println!("{i}: {:?}", tree.get_index_from_key(&i.to_string()));
+            // println!("{i}: {:?}", tree.get_index_from_key(&hash(i.to_le_bytes().as_slice())));
             assert!(tree.get_index_from_key(&i).is_some());
         }
     }
@@ -542,7 +564,7 @@ pub mod tests {
             // println!("{tree:#?}");
 
             for k in 0..i {
-                // println!("{i}: {:?}", tree.get(&i.to_string()));
+                // println!("{i}: {:?}", tree.get(&hash(i.to_le_bytes().as_slice())));
                 assert!(tree.get(&k.to_le_bytes()).is_some());
             }
         }
@@ -588,7 +610,7 @@ pub mod tests {
         // println!("{tree:#?}");
 
         for i in 0..SCOPE {
-            // println!("{i}: {:?}", tree.get_index_from_key(&i.to_string()));
+            // println!("{i}: {:?}", tree.get_index_from_key(&hash(i.to_le_bytes().as_slice())));
             assert!(tree.get_index_from_key(&i.to_le_bytes()).is_some());
         }
     }

@@ -7,8 +7,8 @@ use crate::{
 
 impl<K: Default + Ord + Clone, V: Default + Clone> Node<K, V> {
     pub fn split_off(&mut self, key: &K) -> Option<Pointer<K, V>> {
-        for index in 0..KEY_ARRAY {
-            if let Some(item) = &self.keys[index] {
+        for (index, item) in self.keys.iter().enumerate() {
+            if let Some(item) = item {
                 match key.cmp(&item.key) {
                     Less => {
                         let mut output = self.split_at_index(index);
@@ -71,8 +71,6 @@ impl<K: Default + Ord + Clone, V: Default + Clone> Node<K, V> {
                 });
             }
         }
-        // split parent
-        // split child, put split section to parent.pointer[0]
 
         None
     }
@@ -91,7 +89,7 @@ impl<K: Default + Ord + Clone, V: Default + Clone> Node<K, V> {
                 if self.pointers[loc].is_some() {
                     if index < self.pointers[loc].as_ref().unwrap().counter {
                         let mut output = self.split_at_index(loc);
-                        let mut pointer = self.pointers[loc].as_mut().unwrap();
+                        let pointer = self.pointers[loc].as_mut().unwrap();
                         output.pointers[0] = pointer.child.split_off_at_index(index);
                         pointer.counter = pointer.child.size();
                         // if pointer.child.is_empty() {
@@ -206,14 +204,11 @@ impl<K: Default + Ord + Clone, V: Default + Clone> Node<K, V> {
     }
 
     pub fn split_at_index(&mut self, index: usize) -> Box<Node<K, V>> {
-        let mut new_node = Node {
-            keys: Default::default(),
-            pointers: Default::default(),
-            n: 0,
-            leaf: self.leaf,
-        };
+        let mut new_node: Box<Node<K, V>> = Node::new();
+        new_node.leaf = self.leaf;
 
         let mut count = 0;
+
         for loc in 0..KEY_ARRAY {
             if loc >= index {
                 new_node.keys[count] = self.keys[loc].take();
@@ -224,22 +219,17 @@ impl<K: Default + Ord + Clone, V: Default + Clone> Node<K, V> {
 
         self.n = self.keys.iter().filter(|item| item.is_some()).count();
 
-        Box::new(new_node)
+        new_node
     }
 }
 
 impl<K: Default + Clone, V: Default + Clone> Node<K, V> {
     pub fn split_root(&mut self) {
         let new_root_key = self.keys[KEY_ARRAY / 2].take();
+        let mut new_node: Box<Node<K, V>> = Node::new();
+        new_node.n = KEY_ARRAY / 2;
+        new_node.leaf = self.leaf;
 
-        let new_node = {
-            Node {
-                keys: Default::default(),
-                pointers: Default::default(),
-                n: KEY_ARRAY / 2,
-                leaf: self.leaf,
-            }
-        };
         let mut left_node = new_node.clone();
         let mut right_node = new_node;
 
@@ -263,11 +253,11 @@ impl<K: Default + Clone, V: Default + Clone> Node<K, V> {
 
         self.keys[0] = new_root_key;
         self.pointers[0] = Some(Pointer {
-            child: Box::new(left_node),
+            child: left_node,
             counter: left_size,
         });
         self.pointers[1] = Some(Pointer {
-            child: Box::new(right_node),
+            child: right_node,
             counter: right_size,
         });
         self.n = 1;

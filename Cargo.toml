@@ -17,8 +17,10 @@ serde = { version = "1.0", features = ["derive"] }
 hex = "0.4.3"
 criterion = "0.5.1"
 rand = "0.8.5"
-pprof = { version = "0.11.1", features = ["flamegraph"] }
+pprof = { version = "0.13.0", features = ["flamegraph", "criterion"] }
 serde_json = "1.0.97"
+sha2 = "0.10.8"
+hex-literal = "0.4.1"
 
 [[bench]]
 name = "benches"

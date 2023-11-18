@@ -41,6 +41,7 @@ impl<K: Default, V: Default> Node<K, V> {
         Box::default()
     }
 }
+
 impl<K, V> Node<K, V> {
     pub fn is_full(&self) -> bool {
         self.n == KEY_ARRAY

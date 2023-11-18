@@ -1,3 +1,5 @@
+use std::fmt::Debug;
+
 use crate::IndexTreeMap;
 
 //Iterator
@@ -6,9 +8,7 @@ pub struct IndexTreeIterator<'a, K, V> {
     pub index: usize,
 }
 
-impl<'a, K: Default + Ord + Clone, V: Default + Clone> Iterator
-    for IndexTreeIterator<'a, K, V>
-{
+impl<'a, K: Default + Ord + Clone, V: Default + Clone> Iterator for IndexTreeIterator<'a, K, V> {
     type Item = (&'a K, &'a V);
 
     fn next(&mut self) -> Option<Self::Item> {
@@ -61,13 +61,15 @@ impl<'a, K: Default + Ord + Clone, V: Default + Clone> Iterator
 // }
 
 // FromIter
-impl<K: Default + Ord + Clone, V: Default + Clone> IndexTreeMap<K, V> {
+impl<K: Default + Ord + Clone + Debug, V: Default + Clone + Debug> IndexTreeMap<K, V> {
     fn add(&mut self, item: (K, V)) {
         self.insert(item.0, item.1);
     }
 }
 
-impl<K: Default + Ord + Clone, V: Default + Clone> FromIterator<(K, V)> for IndexTreeMap<K, V> {
+impl<K: Default + Ord + Clone + Debug, V: Default + Clone + Debug> FromIterator<(K, V)>
+    for IndexTreeMap<K, V>
+{
     fn from_iter<I: IntoIterator<Item = (K, V)>>(iter: I) -> Self {
         let mut c = IndexTreeMap::new();
 

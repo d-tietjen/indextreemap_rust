@@ -21,6 +21,10 @@ use stc::{
     Output::{KeyExists, NewKeyPointer},
 };
 
+pub struct IndexTreeSet<K> {
+    pub map: IndexTreeMap<K, ()>,
+}
+
 /// The structures library of the IndexTreeMap
 #[derive(Debug, Clone, Default, Serialize, Deserialize)]
 pub struct IndexTreeMap<K, V> {
@@ -419,7 +423,7 @@ impl<K: Ord, V> IndexTreeMap<K, V> {
     }
 }
 
-impl<K: Default + Ord + Clone, V: Default + Clone> IndexTreeMap<K, V> {
+impl<K: Default + Ord + Clone + Debug, V: Default + Clone + Debug> IndexTreeMap<K, V> {
     /// Inserts a key-value pair into the map.  
     ///
     /// # Example
@@ -581,7 +585,7 @@ impl<K: Default + Ord + Clone, V: Default + Clone> IndexTreeMap<K, V> {
     }
 }
 
-impl<K: Default + Ord + Clone, V: Default + Clone> IndexTreeMap<K, V> {
+impl<K: Default + Ord + Clone + Debug, V: Default + Clone + Debug> IndexTreeMap<K, V> {
     /// Replaces an item from the map from it's corresponding index, returning the key-value pair was previously in the map.
     ///
     /// # Example

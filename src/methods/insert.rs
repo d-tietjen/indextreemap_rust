@@ -6,13 +6,33 @@ use crate::{
     },
     KEY_ARRAY,
 };
-use std::cmp::Ordering::{Equal, Greater, Less};
+use std::{
+    cmp::Ordering::{Equal, Greater, Less},
+    fmt::Debug,
+};
 
-impl<K: Default + Clone + Ord, V: Default + Clone> Node<K, V> {
+impl<K: Default + Clone + Ord + Debug, V: Default + Clone + Debug> Node<K, V> {
     pub fn insert(&mut self, key: K, value: V) -> Output<K, V> {
         // if node is a leaf then the node has no pointers
+
         match self.leaf {
             true => {
+                // match self.binary_search(&key) {
+                //     Ok(index) => {
+                //         if let Some(k) = self.keys[index].as_mut() {
+                //             k.value = Box::new(value);
+                //             return KeyExists;
+                //         }
+                //     }
+                //     Err(index) => match &self.keys[index] {
+                //         Some(_) => self.insert_to_keys(index, key, value),
+                //         None => {
+                //             self.keys[index] = Some(Box::new(Item::new(key, value)));
+                //             self.n += 1;
+                //         }
+                //     },
+                // }
+
                 'search: for index in 0..self.keys.len() {
                     if let Some(k) = self.keys[index].as_mut() {
                         match &key.cmp(&k.key) {
@@ -57,7 +77,7 @@ impl<K: Default + Clone + Ord, V: Default + Clone> Node<K, V> {
                                     NewKeyPointer(new_key, new_pointer) => {
                                         self.pointers[index].as_mut().unwrap().counter =
                                             self.pointers[index].as_ref().unwrap().child.size();
-                                        return self.insert_key_pointer_left(
+                                        return self.insert_key_pointer(
                                             index,
                                             new_key,
                                             new_pointer,
@@ -91,7 +111,7 @@ impl<K: Default + Clone + Ord, V: Default + Clone> Node<K, V> {
                             NewKeyPointer(new_key, new_pointer) => {
                                 self.pointers[index].as_mut().unwrap().counter =
                                     self.pointers[index].as_ref().unwrap().child.size();
-                                return self.insert_key_pointer_right(index, new_key, new_pointer);
+                                return self.insert_key_pointer(index, new_key, new_pointer);
                             }
                             _ => {
                                 self.pointers[index].as_mut().unwrap().counter += 1;
@@ -106,61 +126,23 @@ impl<K: Default + Clone + Ord, V: Default + Clone> Node<K, V> {
         Null
     }
 
-    pub fn insert_key_pointer_left(
+    pub fn insert_key_pointer(
         &mut self,
         index: usize,
         key: Option<Box<Item<K, V>>>,
         pointer: Option<Pointer<K, V>>,
     ) -> Output<K, V> {
-        // insert to index for key [index] and pointer [index+1]
-        self.keys.rotate_right(1);
-        self.pointers.rotate_right(1);
+        let (_, key_right) = self.keys.split_at_mut(index);
+        let (_, pointer_right) = self.pointers.split_at_mut(index + 1);
 
-        // fill first pointer
-        self.pointers[0] = self.pointers[1].take();
-        for id in 0..KEY_ARRAY {
-            if index == id {
-                self.keys[id] = key;
-                self.pointers[id + 1] = pointer;
-                break;
-            } else {
-                self.keys[id] = self.keys[id + 1].take();
-                self.pointers[id + 1] = self.pointers[id + 2].take();
-                continue;
-            }
-        }
+        key_right.rotate_right(1);
+        pointer_right.rotate_right(1);
+
+        key_right[0] = key;
+        pointer_right[0] = pointer;
+
         self.n += 1;
-        if self.is_full() {
-            self.split_parent()
-        } else {
-            Null
-        }
-    }
 
-    pub fn insert_key_pointer_right(
-        &mut self,
-        index: usize,
-        key: Option<Box<Item<K, V>>>,
-        pointer: Option<Pointer<K, V>>,
-    ) -> Output<K, V> {
-        // insert to index for key [index] and pointer [index+1]
-        self.keys.rotate_right(1);
-        self.pointers.rotate_right(1);
-
-        // fill first pointer
-        self.pointers[0] = self.pointers[1].take();
-        for id in 0..KEY_ARRAY {
-            if index == id {
-                self.keys[id] = key;
-                self.pointers[id + 1] = pointer;
-                break;
-            } else {
-                self.keys[id] = self.keys[id + 1].take();
-                self.pointers[id + 1] = self.pointers[id + 2].take();
-                continue;
-            }
-        }
-        self.n += 1;
         if self.is_full() {
             self.split_parent()
         } else {
@@ -169,17 +151,10 @@ impl<K: Default + Clone + Ord, V: Default + Clone> Node<K, V> {
     }
 
     pub fn insert_to_keys(&mut self, index: usize, key: K, value: V) {
-        self.keys.rotate_right(1);
-
-        for id in 0..self.keys.len() {
-            if id == index {
-                self.keys[id] = Some(Box::new(Item::new(key, value)));
-                self.n += 1;
-                break;
-            } else {
-                self.keys[id] = self.keys[id + 1].take();
-            }
-        }
+        let (_, right) = self.keys.split_at_mut(index);
+        right.rotate_right(1);
+        right[0] = Some(Box::new(Item::new(key, value)));
+        self.n += 1;
     }
 
     pub fn update_root(
