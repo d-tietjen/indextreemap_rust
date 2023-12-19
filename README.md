@@ -10,7 +10,7 @@ When compared to the standard library BTreeMap (std::collections::BTreeMap),
 for operations that require changes in memory allocation (insert, remove, etc...)
 the IndexTreeMap is slower. However, when referencing data already allocated in 
 memory, the IndexTreeMap is equivalent or faster.
-
+<!-- 
 ---
 
 ## Methods
@@ -417,7 +417,7 @@ assert_eq!(tree.get(&1), Some(&"b".to_string()));
 
 ### IndexTreeMap::split_off()
 
-Splits the map into two at the given key. Returns everything after the given key, including the key.
+Split the map into two at the given key. Returns everything after the given key, including the key.
 
 **Example**
 Basic usage:
@@ -469,4 +469,4 @@ assert_eq!(a.get(&3), None);
 assert_eq!(b.get(&3), Some(&"c"));
 assert_eq!(b.get(&17), Some(&"d"));
 assert_eq!(b.get(&41), Some(&"e"));
-```
+``` -->
