@@ -63,6 +63,31 @@ impl<K: Ord + Clone, V: Clone> Node<K, V> {
             None
         }
     }
+
+    pub fn remove_index(&mut self, mut index: usize) -> Option<(K, V)> {
+        if self.leaf {
+            self.leaf_remove_key(index)
+        } else {
+            for loc in 0..KEY_ARRAY {
+                if let Some(pointer) = self.pointers[loc].as_mut() {
+                    if index < pointer.counter {
+                        return pointer.child.remove_index(index);
+                    } else {
+                        index -= pointer.counter
+                    };
+                    if index == 0 {
+                        return self.node_remove_key(index);
+                    } else {
+                        index -= 1;
+                        continue;
+                    }
+                } else {
+                    continue;
+                }
+            }
+            None
+        }
+    }
 }
 
 impl<K: Ord, V> Node<K, V> {

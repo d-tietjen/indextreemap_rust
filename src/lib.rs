@@ -13,7 +13,7 @@ pub const POINTER_ARRAY: usize = KEY_ARRAY + 1;
 
 use std::fmt::Debug;
 
-use methods::iter::{IndexTreeIterator, IndexTreeKeys, IndexTreeValues};
+use methods::iter::{IndexTreeIterator, IndexTreeKeys, IndexTreeSetIterator, IndexTreeValues};
 // use methods::iter::{IndexTreeIterator, IndexTreeKeys, IndexTreeValues};
 use serde::{Deserialize, Serialize};
 use stc::{
@@ -21,11 +21,374 @@ use stc::{
     Output::{KeyExists, NewKeyPointer},
 };
 
+/// The 'Set' IndexTree data structure
+#[derive(Debug, Clone, Default, Serialize, Deserialize)]
 pub struct IndexTreeSet<K> {
     pub map: IndexTreeMap<K, ()>,
 }
 
-/// The structures library of the IndexTreeMap
+impl<K: Default> IndexTreeSet<K> {
+    /// Makes a new, empty IndexTreeSet.
+    ///
+    /// Does not allocate anything on its own.
+    ///
+    /// ### Example
+    ///
+    /// Basic usage:
+    /// ```rust
+    /// use indextreemap::IndexTreeSet;
+    ///
+    /// let mut map = IndexTreeSet::new();
+    ///
+    /// map.insert(1);
+    ///
+    /// ```    
+    pub fn new() -> IndexTreeSet<K> {
+        IndexTreeSet {
+            map: IndexTreeMap::new(),
+        }
+    }
+}
+
+impl<K: Default> IndexTreeSet<K> {
+    /// Clears the map, removing all elements.
+    ///
+    /// Does not allocate anything on its own.
+    ///
+    /// # Example
+    ///
+    /// Basic usage:
+    /// ```rust
+    /// use indextreemap::IndexTreeSet;
+    ///
+    /// let mut map = IndexTreeSet::new();
+    ///
+    /// map.insert(1);
+    /// map.clear();
+    /// assert!(map.is_empty());
+    /// ```
+    pub fn clear(&mut self) {
+        self.map.clear()
+    }
+}
+
+impl<K> IndexTreeSet<K> {
+    /// Clears the map, removing all elements.
+    ///
+    /// # Example
+    ///
+    /// Basic usage:
+    /// ```rust
+    /// use indextreemap::IndexTreeSet;
+    ///
+    /// let mut map = IndexTreeSet::new();
+    ///
+    /// map.insert(1);
+    /// assert_eq!(map.len(), 1);
+    /// ```
+    pub fn len(&self) -> usize {
+        self.map.len()
+    }
+
+    /// Returns true if the map contains no elements.
+    ///
+    /// # Example
+    ///
+    /// Basic usage:
+    /// ```rust
+    /// use indextreemap::IndexTreeSet;
+    ///
+    /// let mut map = IndexTreeSet::new();
+    /// assert!(map.is_empty());
+    /// map.insert(1);
+    /// assert!(!map.is_empty());
+    /// ```
+    pub fn is_empty(&self) -> bool {
+        self.map.is_empty()
+    }
+}
+
+impl<K: Ord> IndexTreeSet<K> {
+    /// Returns true if the set contains a value for the specified key.
+    ///
+    /// The key may be any borrowed form of the map’s key type, but the
+    /// ordering on the borrowed form must match the ordering on the key type.
+    ///
+    /// # Example
+    ///
+    /// Basic usage:
+    /// ```rust
+    /// use indextreemap::IndexTreeSet;
+    ///
+    /// let mut tree = IndexTreeSet::new();
+    /// tree.insert(1);
+    /// assert_eq!(tree.contains_key(&1), true);
+    /// assert_eq!(tree.contains_key(&2), false);
+    /// ```
+    pub fn contains_key(&self, key: &K) -> bool {
+        self.map.contains_key(key)
+    }
+}
+
+impl<K> IndexTreeSet<K> {
+    /// Returns true if the set contains an item in the index position.
+    ///
+    /// # Example
+    ///
+    /// Basic usage:
+    /// ```rust
+    /// use indextreemap::IndexTreeSet;
+    ///
+    /// let mut tree = IndexTreeSet::new();
+    /// tree.insert(1);
+    /// assert_eq!(tree.contains_index(0), true);
+    /// assert_eq!(tree.contains_index(1), false);
+    /// ```
+    pub fn contains_index(&self, index: usize) -> bool {
+        self.map.contains_index(index)
+    }
+}
+
+impl<K: Ord> IndexTreeSet<K> {
+    /// Returns the index of the corresponding key.
+    ///
+    /// # Example
+    ///
+    /// Basic usage:
+    /// ```rust
+    /// use indextreemap::IndexTreeSet;
+    ///
+    /// let mut tree = IndexTreeSet::new();
+    /// tree.insert(1);
+    /// assert_eq!(tree.get(&1), Some(&1));
+    /// assert_eq!(tree.get(&2), None);
+    /// ```
+    pub fn get(&self, key: &K) -> Option<&K> {
+        self.map.get_key_value(key).map(|(k, _)| k)
+    }
+
+    /// Returns the index of the corresponding key.
+    ///
+    /// # Example
+    ///
+    /// Basic usage:
+    /// ```rust
+    /// use indextreemap::IndexTreeSet;
+    ///
+    /// let mut tree = IndexTreeSet::new();
+    /// tree.insert(1);
+    /// assert_eq!(tree.get_key_from_index(0), Some(&1));
+    /// assert_eq!(tree.get_key_from_index(1), None);
+    /// ```
+    pub fn get_from_index(&self, index: usize) -> Option<&K> {
+        self.map.get_key_from_index(index)
+    }
+}
+
+impl<K: Ord> IndexTreeSet<K> {
+    /// Returns the index of the corresponding key.
+    ///
+    /// # Example
+    ///
+    /// Basic usage:
+    /// ```rust
+    /// use indextreemap::IndexTreeSet;
+    ///
+    /// let mut tree = IndexTreeSet::new();
+    /// tree.insert(1);
+    /// assert_eq!(tree.get_index_from_key(&1), Some(0));
+    /// assert_eq!(tree.get_index_from_key(&2), None);
+    /// ```
+    pub fn get_index_from_key(&self, key: &K) -> Option<usize> {
+        self.map.get_index_from_key(key)
+    }
+
+    /// Returns a reference to the key corresponding to the index.
+    ///
+    /// # Example
+    ///
+    /// Basic usage:
+    /// ```rust
+    /// use indextreemap::IndexTreeSet;
+    ///
+    /// let mut tree = IndexTreeSet::new();
+    /// tree.insert(1);
+    /// assert_eq!(tree.get_key_from_index(0), Some(&1));
+    /// assert_eq!(tree.get_key_from_index(1), None);
+    /// ```
+    pub fn get_key_from_index(&self, id: usize) -> Option<&K> {
+        self.map.get_key_from_index(id)
+    }
+
+    /// Returns a reference to the first key in the map.
+    ///
+    /// # Example
+    ///
+    /// Basic usage:
+    /// ```rust
+    /// use indextreemap::IndexTreeSet;
+    ///
+    /// let mut tree = IndexTreeSet::new();
+    /// tree.insert(1);
+    /// assert_eq!(tree.get_first(), Some(&1));
+    /// ```
+    pub fn get_first(&self) -> Option<&K> {
+        self.map.get_first_key()
+    }
+
+    /// Returns a reference to the last key in the map.
+    ///
+    /// # Example
+    ///
+    /// Basic usage:
+    /// ```rust
+    /// use indextreemap::IndexTreeSet;
+    ///
+    /// let mut tree = IndexTreeSet::new();
+    /// tree.insert(1);
+    /// tree.insert(2);
+    /// assert_eq!(tree.get_last(), Some(&2));
+    /// ```
+    pub fn get_last(&self) -> Option<&K> {
+        self.map.get_last_key()
+    }
+}
+
+impl<K: Default + Ord + Clone + Debug> IndexTreeSet<K> {
+    /// Inserts a key into the set.  
+    ///
+    /// # Example
+    ///
+    /// Basic usage:
+    /// ```rust
+    /// use indextreemap::IndexTreeSet;
+    ///
+    /// let mut tree = IndexTreeSet::new();
+    /// tree.insert(1);
+    /// assert!(!tree.is_empty());
+    /// ```
+    pub fn insert(&mut self, key: K) {
+        self.map.insert(key, ())
+    }
+}
+
+impl<K> IndexTreeSet<K> {
+    /// Gets an iterator over the entries of the set, sorted by key.
+    ///
+    /// # Example
+    ///
+    /// Basic usage:
+    /// ```rust
+    /// use indextreemap::IndexTreeSet;
+    ///
+    /// let mut map = IndexTreeSet::new();
+    /// map.insert(10);
+    /// map.insert(1);
+    ///
+    /// let first_key = map.iter().next().unwrap();
+    /// assert_eq!(first_key, &1);
+    /// ```
+    pub fn iter(&self) -> IndexTreeSetIterator<K> {
+        IndexTreeSetIterator {
+            tree: self,
+            index: 0,
+        }
+    }
+}
+
+impl<K: Default + Ord + Clone> IndexTreeSet<K> {
+    /// Removes an item from the map from its corresponding key, returning the key-value pair that was previously in the map.
+    ///
+    /// # Example
+    ///
+    /// Basic usage:
+    /// ```rust
+    /// use indextreemap::IndexTreeSet;
+    ///
+    /// let mut tree = IndexTreeSet::new();
+    /// tree.insert(1);
+    /// assert_eq!(tree.remove(&1), Some(1));
+    /// assert_eq!(tree.remove(&2), None);
+    /// ```
+    pub fn remove(&mut self, key: &K) -> Option<K> {
+        self.map.remove(key).map(|(k, _)| k)
+    }
+}
+
+impl<K: Default + Ord + Clone> IndexTreeSet<K> {
+    /// Removes an item from the map from its corresponding index, returning the key-value pair that was previously in the map.
+    ///
+    /// # Example
+    ///
+    /// Basic usage:
+    /// ```rust
+    /// use indextreemap::IndexTreeSet;
+    ///
+    /// let mut tree = IndexTreeSet::new();
+    /// tree.insert(1);
+    /// assert_eq!(tree.remove_index(0), Some(1));
+    /// assert_eq!(tree.remove_index(1), None);
+    /// ```
+    pub fn remove_from_index(&mut self, index: usize) -> Option<K> {
+        self.map.remove_from_index(index).map(|(k, _)| k)
+    }
+}
+
+impl<K: Default + Ord + Clone> IndexTreeSet<K> {
+    /// Splits the map into two at the given key. Returns everything after the given key, including the key.
+    ///
+    /// # Example
+    ///
+    /// Basic usage:
+    /// ```rust
+    /// use indextreemap::IndexTreeSet;
+    ///
+    /// let mut a = IndexTreeSet::new();
+    /// a.insert(1);
+    /// a.insert(2);
+    /// a.insert(13);
+    /// a.insert(17);
+    /// a.insert(41);
+    ///
+    /// let b = a.split_off(&13);
+    ///
+    /// assert_eq!(a.len(), 2);
+    /// assert_eq!(b.len(), 3);
+    /// ```
+    pub fn split_off(&mut self, key: &K) -> IndexTreeSet<K> {
+        IndexTreeSet {
+            map: self.map.split_off(key),
+        }
+    }
+
+    /// Splits the map into two at the given index. Returns everything after the given key, including the key.
+    ///
+    /// # Example
+    ///
+    /// Basic usage:
+    /// ```rust
+    /// use indextreemap::IndexTreeSet;
+    ///
+    /// let mut a = IndexTreeSet::new();
+    /// a.insert(1);
+    /// a.insert(2);
+    /// a.insert(3);
+    /// a.insert(17);
+    /// a.insert(41);
+    ///
+    /// let b = a.split_off_from_index(2);
+    ///
+    /// assert_eq!(a.len(), 2);
+    /// assert_eq!(b.len(), 3);
+    /// ```
+    pub fn split_off_from_index(&mut self, index: usize) -> IndexTreeSet<K> {
+        IndexTreeSet {
+            map: self.map.split_off_from_index(index),
+        }
+    }
+}
+
+/// The 'Map' IndexTree data structure
 #[derive(Debug, Clone, Default, Serialize, Deserialize)]
 pub struct IndexTreeMap<K, V> {
     pub root: Box<Node<K, V>>,
@@ -46,6 +409,7 @@ impl<K: Default, V: Default> IndexTreeMap<K, V> {
     /// let mut map = IndexTreeMap::new();
     ///
     /// map.insert(1, "a".to_string());
+    ///
     /// ```    
     pub fn new() -> IndexTreeMap<K, V> {
         let mut tree = IndexTreeMap::default();
@@ -541,30 +905,30 @@ impl<K: Default + Ord + Clone, V: Default + Clone> IndexTreeMap<K, V> {
     }
 }
 
-// impl<K: Default + Ord + Clone, V: Default + Clone> IndexTreeMap<K, V> {
-//     /// Removes an item from the map from its corresponding index, returning the key-value pair that was previously in the map.
-//     ///
-//     /// # Example
-//     ///
-//     /// Basic usage:
-//     /// ```rust
-//     /// use indextreemap::IndexTreeMap;
-//     ///
-//     /// let mut tree = IndexTreeMap::new();
-//     /// tree.insert(1, "a".to_string());
-//     /// assert_eq!(tree.remove_from_index(0), Some((1, "a".to_string())));
-//     /// assert_eq!(tree.remove_from_index(1), None);
-//     /// ```
-//     pub fn remove_from_index(&mut self, index: usize) -> Option<(K, V)> {
-//         match self.root.remove_from_index(index) {
-//             None => None,
-//             Some(item) => {
-//                 self.size -= 1;
-//                 Some((item.0, item.1))
-//             }
-//         }
-//     }
-// }
+impl<K: Default + Ord + Clone, V: Default + Clone> IndexTreeMap<K, V> {
+    /// Removes an item from the map from its corresponding index, returning the key-value pair that was previously in the map.
+    ///
+    /// # Example
+    ///
+    /// Basic usage:
+    /// ```rust
+    /// use indextreemap::IndexTreeMap;
+    ///
+    /// let mut tree = IndexTreeMap::new();
+    /// tree.insert(1, "a".to_string());
+    /// assert_eq!(tree.remove_from_index(0), Some((1, "a".to_string())));
+    /// assert_eq!(tree.remove_from_index(1), None);
+    /// ```
+    pub fn remove_from_index(&mut self, index: usize) -> Option<(K, V)> {
+        match self.root.remove_index(index) {
+            None => None,
+            Some(item) => {
+                self.size -= 1;
+                Some((item.0, item.1))
+            }
+        }
+    }
+}
 
 impl<K: Default + Ord + Clone, V: Default + Clone> IndexTreeMap<K, V> {
     /// Replaces an item from the map from it's corresponding key, returning the key-value pair was previously in the map.

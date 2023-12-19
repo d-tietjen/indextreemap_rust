@@ -50,7 +50,14 @@ impl<K: Ord, V> Node<K, V> {
                             return None;
                         }
                     }
-                    Equal => return Some(usize),
+                    Equal => {
+                        if let Some(pointer) = &self.pointers[index] {
+                            return Some(usize + pointer.counter);
+                        } else {
+                            return Some(usize);
+                        }
+                    }
+
                     Greater => {
                         if index >= KEY_ARRAY - 1 {
                             if let Some(pointer) = &self.pointers[index + 1] {

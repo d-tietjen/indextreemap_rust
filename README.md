@@ -29,8 +29,7 @@ map.insert(1, "a".to_string());
 ```    
 
 ### IndexTreeMap::insert()
-
-Inserts a key-value pair into the map.  
+Insert a key-value pair into the map.  
 **Example**
 Basic usage:
 ```rust

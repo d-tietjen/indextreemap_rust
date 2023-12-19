@@ -1,6 +1,6 @@
 use std::fmt::Debug;
 
-use crate::IndexTreeMap;
+use crate::{IndexTreeMap, IndexTreeSet};
 
 //Iterator
 pub struct IndexTreeIterator<'a, K, V> {
@@ -8,13 +8,33 @@ pub struct IndexTreeIterator<'a, K, V> {
     pub index: usize,
 }
 
-impl<'a, K: Default + Ord + Clone, V: Default + Clone> Iterator for IndexTreeIterator<'a, K, V> {
+impl<'a, K: Default + Ord + Clone, V: Default + Ord + Clone> Iterator
+    for IndexTreeIterator<'a, K, V>
+{
     type Item = (&'a K, &'a V);
 
     fn next(&mut self) -> Option<Self::Item> {
         if self.index < self.tree.size {
             self.index += 1;
             return self.tree.get_key_value_from_index(self.index - 1);
+        }
+        None
+    }
+}
+
+//Iterator
+pub struct IndexTreeSetIterator<'a, K> {
+    pub tree: &'a IndexTreeSet<K>,
+    pub index: usize,
+}
+
+impl<'a, K: Default + Ord + Clone> Iterator for IndexTreeSetIterator<'a, K> {
+    type Item = &'a K;
+
+    fn next(&mut self) -> Option<Self::Item> {
+        if self.index < self.tree.map.size {
+            self.index += 1;
+            return self.tree.get_key_from_index(self.index - 1);
         }
         None
     }
