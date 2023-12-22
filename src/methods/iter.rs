@@ -8,9 +8,7 @@ pub struct IndexTreeIterator<'a, K, V> {
     pub index: usize,
 }
 
-impl<'a, K: Default + Ord + Clone, V: Default + Ord + Clone> Iterator
-    for IndexTreeIterator<'a, K, V>
-{
+impl<'a, K: Default + Ord + Clone, V: Default + Clone> Iterator for IndexTreeIterator<'a, K, V> {
     type Item = (&'a K, &'a V);
 
     fn next(&mut self) -> Option<Self::Item> {

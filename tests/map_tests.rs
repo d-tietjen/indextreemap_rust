@@ -551,6 +551,20 @@ pub mod tests {
         }
     }
 
+    #[test]
+    fn usize_iter() {
+        let mut tree = IndexTreeMap::new();
+        for i in 0..SCOPE {
+            tree.insert(i, i)
+        }
+
+        for (index, (key, value)) in tree.iter().enumerate() {
+            println!("{index} {key} {value}");
+            assert_eq!(key, &index);
+            assert_eq!(value, &index);
+        }
+    }
+
     //* BYTE ARRAY TESTS *//
     // * * Expansive Testing has a time complexity of O(SCOPE * SCOPE)
     #[test]

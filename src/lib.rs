@@ -326,8 +326,8 @@ impl<K: Default + Ord + Clone> IndexTreeSet<K> {
     ///
     /// let mut tree = IndexTreeSet::new();
     /// tree.insert(1);
-    /// assert_eq!(tree.remove_index(0), Some(1));
-    /// assert_eq!(tree.remove_index(1), None);
+    /// assert_eq!(tree.remove_from_index(0), Some(1));
+    /// assert_eq!(tree.remove_from_index(1), None);
     /// ```
     pub fn remove_from_index(&mut self, index: usize) -> Option<K> {
         self.map.remove_from_index(index).map(|(k, _)| k)

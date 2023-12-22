@@ -1,6 +1,6 @@
 [package]
 name = "indextreemap"
-version = "0.1.24"
+version = "0.1.25"
 edition = "2021"
 description = "A BTreeMap implementation that allows for key and or positional insertion and retreival."
 catagories = ["data-structures"]
