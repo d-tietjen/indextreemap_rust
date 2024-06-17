@@ -73,7 +73,7 @@ impl<K: Default> IndexTreeSet<K> {
 }
 
 impl<K> IndexTreeSet<K> {
-    /// Clears the map, removing all elements.
+    /// Gets the number of items in the set
     ///
     /// # Example
     ///
@@ -447,7 +447,7 @@ impl<K: Default, V: Default> IndexTreeMap<K, V> {
 }
 
 impl<K, V> IndexTreeMap<K, V> {
-    /// Clears the map, removing all elements.
+    /// Gets the number of items in the map
     ///
     /// # Example
     ///
