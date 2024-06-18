@@ -15,14 +15,14 @@ use std::fmt::Debug;
 
 use methods::iter::{IndexTreeIterator, IndexTreeKeys, IndexTreeSetIterator, IndexTreeValues};
 // use methods::iter::{IndexTreeIterator, IndexTreeKeys, IndexTreeValues};
-use serde::{Deserialize, Serialize};
 use stc::{
     Node,
     Output::{KeyExists, NewKeyPointer},
 };
 
 /// The 'Set' IndexTree data structure
-#[derive(Debug, Clone, Default, Serialize, Deserialize)]
+#[derive(Debug, Clone, Default)]
+#[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
 pub struct IndexTreeSet<K> {
     pub map: IndexTreeMap<K, ()>,
 }
@@ -389,7 +389,8 @@ impl<K: Default + Ord + Clone> IndexTreeSet<K> {
 }
 
 /// The 'Map' IndexTree data structure
-#[derive(Debug, Clone, Default, Serialize, Deserialize)]
+#[derive(Debug, Clone, Default)]
+#[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
 pub struct IndexTreeMap<K, V> {
     pub root: Box<Node<K, V>>,
     pub size: usize,
