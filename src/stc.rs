@@ -19,7 +19,7 @@ pub struct Pointer<K, V> {
     pub counter: usize,
 }
 
-impl<K: Default, V: Default> Pointer<K, V> {
+impl<K, V> Pointer<K, V> {
     pub fn new() -> Pointer<K, V> {
         Pointer {
             child: Node::new(),
@@ -28,7 +28,7 @@ impl<K: Default, V: Default> Pointer<K, V> {
     }
 }
 
-#[derive(Debug, Clone, Default)]
+#[derive(Debug, Clone)]
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
 pub struct Node<K, V> {
     pub keys: [Option<Box<Item<K, V>>>; KEY_ARRAY],
@@ -37,9 +37,20 @@ pub struct Node<K, V> {
     pub pointers: [Option<Pointer<K, V>>; POINTER_ARRAY],
 }
 
-impl<K: Default, V: Default> Node<K, V> {
+impl<K, V> Node<K, V> {
     pub fn new() -> Box<Node<K, V>> {
         Box::default()
+    }
+}
+
+impl<K, V> Default for Box<Node<K, V>> {
+    fn default() -> Self {
+        Box::new(Node {
+            keys: Default::default(),
+            pointers: Default::default(),
+            n: 0,
+            leaf: true,
+        })
     }
 }
 
