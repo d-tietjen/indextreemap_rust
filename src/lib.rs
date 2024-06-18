@@ -15,19 +15,19 @@ use std::fmt::Debug;
 
 use methods::iter::{IndexTreeIterator, IndexTreeKeys, IndexTreeSetIterator, IndexTreeValues};
 // use methods::iter::{IndexTreeIterator, IndexTreeKeys, IndexTreeValues};
-use serde::{Deserialize, Serialize};
 use stc::{
     Node,
     Output::{KeyExists, NewKeyPointer},
 };
 
 /// The 'Set' IndexTree data structure
-#[derive(Debug, Clone, Default, Serialize, Deserialize)]
+#[derive(Debug, Clone, Default)]
+#[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
 pub struct IndexTreeSet<K> {
     pub map: IndexTreeMap<K, ()>,
 }
 
-impl<K: Default> IndexTreeSet<K> {
+impl<K> IndexTreeSet<K> {
     /// Makes a new, empty IndexTreeSet.
     ///
     /// Does not allocate anything on its own.
@@ -50,7 +50,7 @@ impl<K: Default> IndexTreeSet<K> {
     }
 }
 
-impl<K: Default> IndexTreeSet<K> {
+impl<K> IndexTreeSet<K> {
     /// Clears the map, removing all elements.
     ///
     /// Does not allocate anything on its own.
@@ -254,7 +254,7 @@ impl<K: Ord> IndexTreeSet<K> {
     }
 }
 
-impl<K: Default + Ord + Clone + Debug> IndexTreeSet<K> {
+impl<K: Ord + Clone> IndexTreeSet<K> {
     /// Inserts a key into the set.  
     ///
     /// # Example
@@ -296,7 +296,7 @@ impl<K> IndexTreeSet<K> {
     }
 }
 
-impl<K: Default + Ord + Clone> IndexTreeSet<K> {
+impl<K: Ord + Clone> IndexTreeSet<K> {
     /// Removes an item from the map from its corresponding key, returning the key-value pair that was previously in the map.
     ///
     /// # Example
@@ -315,7 +315,7 @@ impl<K: Default + Ord + Clone> IndexTreeSet<K> {
     }
 }
 
-impl<K: Default + Ord + Clone> IndexTreeSet<K> {
+impl<K: Ord + Clone> IndexTreeSet<K> {
     /// Removes an item from the map from its corresponding index, returning the key-value pair that was previously in the map.
     ///
     /// # Example
@@ -334,7 +334,7 @@ impl<K: Default + Ord + Clone> IndexTreeSet<K> {
     }
 }
 
-impl<K: Default + Ord + Clone> IndexTreeSet<K> {
+impl<K: Ord + Clone> IndexTreeSet<K> {
     /// Splits the map into two at the given key. Returns everything after the given key, including the key.
     ///
     /// # Example
@@ -389,13 +389,14 @@ impl<K: Default + Ord + Clone> IndexTreeSet<K> {
 }
 
 /// The 'Map' IndexTree data structure
-#[derive(Debug, Clone, Default, Serialize, Deserialize)]
+#[derive(Debug, Clone)]
+#[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
 pub struct IndexTreeMap<K, V> {
     pub root: Box<Node<K, V>>,
     pub size: usize,
 }
 
-impl<K: Default, V: Default> IndexTreeMap<K, V> {
+impl<K, V> IndexTreeMap<K, V> {
     /// Makes a new, empty IndexTreeMap.
     ///
     /// Does not allocate anything on its own.
@@ -412,13 +413,20 @@ impl<K: Default, V: Default> IndexTreeMap<K, V> {
     ///
     /// ```    
     pub fn new() -> IndexTreeMap<K, V> {
-        let mut tree = IndexTreeMap::default();
-        tree.root.leaf = true;
-        tree
+        IndexTreeMap::default()
     }
 }
 
-impl<K: Default, V: Default> IndexTreeMap<K, V> {
+impl<K, V> Default for IndexTreeMap<K, V> {
+    fn default() -> Self {
+        IndexTreeMap {
+            root: Node::new(),
+            size: 0,
+        }
+    }
+}
+
+impl<K, V> IndexTreeMap<K, V> {
     /// Clears the map, removing all elements.
     ///
     /// Does not allocate anything on its own.
@@ -436,12 +444,7 @@ impl<K: Default, V: Default> IndexTreeMap<K, V> {
     /// assert!(map.is_empty());
     /// ```
     pub fn clear(&mut self) {
-        self.root = Box::new(Node {
-            keys: Default::default(),
-            pointers: Default::default(),
-            n: 0,
-            leaf: true,
-        });
+        self.root = Node::new();
         self.size = 0
     }
 }
@@ -787,7 +790,7 @@ impl<K: Ord, V> IndexTreeMap<K, V> {
     }
 }
 
-impl<K: Default + Ord + Clone + Debug, V: Default + Clone + Debug> IndexTreeMap<K, V> {
+impl<K: Ord + Clone, V: Clone> IndexTreeMap<K, V> {
     /// Inserts a key-value pair into the map.  
     ///
     /// # Example
@@ -880,7 +883,7 @@ impl<K, V> IndexTreeMap<K, V> {
     }
 }
 
-impl<K: Default + Ord + Clone, V: Default + Clone> IndexTreeMap<K, V> {
+impl<K: Ord + Clone, V: Clone> IndexTreeMap<K, V> {
     /// Removes an item from the map from its corresponding key, returning the key-value pair that was previously in the map.
     ///
     /// # Example
@@ -905,7 +908,7 @@ impl<K: Default + Ord + Clone, V: Default + Clone> IndexTreeMap<K, V> {
     }
 }
 
-impl<K: Default + Ord + Clone, V: Default + Clone> IndexTreeMap<K, V> {
+impl<K: Ord + Clone, V: Clone> IndexTreeMap<K, V> {
     /// Removes an item from the map from its corresponding index, returning the key-value pair that was previously in the map.
     ///
     /// # Example
@@ -930,7 +933,7 @@ impl<K: Default + Ord + Clone, V: Default + Clone> IndexTreeMap<K, V> {
     }
 }
 
-impl<K: Default + Ord + Clone, V: Default + Clone> IndexTreeMap<K, V> {
+impl<K: Ord + Clone, V: Clone> IndexTreeMap<K, V> {
     /// Replaces an item from the map from it's corresponding key, returning the key-value pair was previously in the map.
     ///
     /// # Example
@@ -949,7 +952,7 @@ impl<K: Default + Ord + Clone, V: Default + Clone> IndexTreeMap<K, V> {
     }
 }
 
-impl<K: Default + Ord + Clone + Debug, V: Default + Clone + Debug> IndexTreeMap<K, V> {
+impl<K: Ord + Clone, V: Clone> IndexTreeMap<K, V> {
     /// Replaces an item from the map from it's corresponding index, returning the key-value pair was previously in the map.
     ///
     /// # Example
@@ -971,7 +974,7 @@ impl<K: Default + Ord + Clone + Debug, V: Default + Clone + Debug> IndexTreeMap<
     }
 }
 
-impl<K: Default + Ord + Clone, V: Default + Clone> IndexTreeMap<K, V> {
+impl<K: Ord + Clone, V: Clone> IndexTreeMap<K, V> {
     /// Splits the map into two at the given key. Returns everything after the given key, including the key.
     ///
     /// # Example

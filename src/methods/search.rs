@@ -1,7 +1,7 @@
 use crate::stc::Node;
 use std::cmp::Ordering::{Equal, Greater, Less};
 
-impl<K: Default + Clone + Ord, V: Default + Clone> Node<K, V> {
+impl<K: Clone + Ord, V: Clone> Node<K, V> {
     pub fn binary_search(&self, key: &K) -> Result<usize, usize> {
         if self.n == 0 {
             Err(0)

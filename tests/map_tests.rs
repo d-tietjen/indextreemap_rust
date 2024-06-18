@@ -714,4 +714,12 @@ pub mod tests {
             }
         }
     }
+
+    #[test]
+    fn test_values_without_traits() {
+        #[derive(Clone)]
+        struct Value();
+        let mut map: IndexTreeMap<u64, Value> = IndexTreeMap::default();
+        map.insert(1, Value());
+    }
 }

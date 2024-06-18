@@ -5,7 +5,7 @@ use crate::{
     KEY_ARRAY, POINTER_ARRAY,
 };
 
-impl<K: Default + Ord + Clone, V: Default + Clone> Node<K, V> {
+impl<K: Ord + Clone, V: Clone> Node<K, V> {
     pub fn split_off(&mut self, key: &K) -> Option<Pointer<K, V>> {
         for (index, item) in self.keys.iter().enumerate() {
             if let Some(item) = item {
@@ -223,15 +223,16 @@ impl<K: Default + Ord + Clone, V: Default + Clone> Node<K, V> {
     }
 }
 
-impl<K: Default + Clone, V: Default + Clone> Node<K, V> {
+impl<K: Clone, V: Clone> Node<K, V> {
     pub fn split_root(&mut self) {
         let new_root_key = self.keys[KEY_ARRAY / 2].take();
-        let mut new_node: Box<Node<K, V>> = Node::new();
-        new_node.n = KEY_ARRAY / 2;
-        new_node.leaf = self.leaf;
 
-        let mut left_node = new_node.clone();
-        let mut right_node = new_node;
+        let mut left_node = Node::new();
+        left_node.n = KEY_ARRAY / 2;
+        left_node.leaf = self.leaf;
+        let mut right_node = Node::new();
+        right_node.n = KEY_ARRAY / 2;
+        right_node.leaf = self.leaf;
 
         let mut left_counter = 0;
         let mut right_counter = 0;

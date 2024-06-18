@@ -6,12 +6,9 @@ use crate::{
     },
     KEY_ARRAY,
 };
-use std::{
-    cmp::Ordering::{Equal, Greater, Less},
-    fmt::Debug,
-};
+use std::cmp::Ordering::{Equal, Greater, Less};
 
-impl<K: Default + Clone + Ord + Debug, V: Default + Clone + Debug> Node<K, V> {
+impl<K: Ord + Clone, V: Clone> Node<K, V> {
     pub fn insert(&mut self, key: K, value: V) -> Output<K, V> {
         // if node is a leaf then the node has no pointers
 
