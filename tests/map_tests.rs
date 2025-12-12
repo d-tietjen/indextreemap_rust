@@ -404,6 +404,21 @@ pub mod tests {
         }
     }
 
+    #[test]
+    fn i32_iter() {
+        let mut tree = IndexTreeMap::new();
+        assert_eq!(tree.iter().count(), 0);
+        assert_eq!(tree.keys().count(), 0);
+        assert_eq!(tree.values().count(), 0);
+
+        for i in 1..=4 {
+            tree.insert(i, i*i);
+            assert_eq!(tree.iter().count(), i);
+            assert_eq!(tree.keys().count(), i);
+            assert_eq!(tree.values().count(), i);
+        }
+    }
+
     //* USIZE TESTS *//
     // * * Expansive Testing has a time complexity of O(SCOPE * SCOPE)
     #[test]
