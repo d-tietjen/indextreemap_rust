@@ -8,7 +8,7 @@ use crate::{
 };
 use std::cmp::Ordering::{Equal, Greater, Less};
 
-impl<K: Ord + Clone, V: Clone> Node<K, V> {
+impl<K: Ord + Clone, V> Node<K, V> {
     pub fn insert(&mut self, key: K, value: V) -> Output<K, V> {
         // if node is a leaf then the node has no pointers
 

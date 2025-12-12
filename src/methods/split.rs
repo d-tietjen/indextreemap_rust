@@ -5,7 +5,7 @@ use crate::{
     KEY_ARRAY, POINTER_ARRAY,
 };
 
-impl<K: Ord + Clone, V: Clone> Node<K, V> {
+impl<K: Ord + Clone, V> Node<K, V> {
     pub fn split_off(&mut self, key: &K) -> Option<Pointer<K, V>> {
         for (index, item) in self.keys.iter().enumerate() {
             if let Some(item) = item {
@@ -223,7 +223,7 @@ impl<K: Ord + Clone, V: Clone> Node<K, V> {
     }
 }
 
-impl<K: Clone, V: Clone> Node<K, V> {
+impl<K: Clone, V> Node<K, V> {
     pub fn split_root(&mut self) {
         let new_root_key = self.keys[KEY_ARRAY / 2].take();
 

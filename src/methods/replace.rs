@@ -2,7 +2,7 @@ use std::cmp::Ordering::{Equal, Greater, Less};
 
 use crate::{stc::Node, KEY_ARRAY};
 
-impl<K: Ord, V: Clone> Node<K, V> {
+impl<K: Ord, V> Node<K, V> {
     pub fn replace(&mut self, key: &K, value: V) -> Option<V> {
         'search: for (index, item) in self.keys.iter_mut().enumerate() {
             match item {
@@ -15,9 +15,7 @@ impl<K: Ord, V: Clone> Node<K, V> {
                         }
                     }
                     Equal => {
-                        let removed_value = Some(*item.value.clone());
-                        item.value = Box::new(value);
-                        return removed_value;
+                        return Some(*std::mem::replace(&mut item.value, Box::new(value)));
                     }
                     Greater => {
                         if index >= KEY_ARRAY - 1 {

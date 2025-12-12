@@ -2,7 +2,7 @@ use std::cmp::Ordering::{Equal, Greater, Less};
 
 use crate::{stc::Node, KEY_ARRAY, POINTER_ARRAY};
 
-impl<K: Ord + Clone, V: Clone> Node<K, V> {
+impl<K: Ord + Clone, V> Node<K, V> {
     pub fn remove(&mut self, key: &K) -> Option<(K, V)> {
         if self.leaf {
             'search: for index in 0..KEY_ARRAY {
