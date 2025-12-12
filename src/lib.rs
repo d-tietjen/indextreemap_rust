@@ -254,7 +254,7 @@ impl<K: Ord> IndexTreeSet<K> {
     }
 }
 
-impl<K: Ord + Clone> IndexTreeSet<K> {
+impl<K: Ord> IndexTreeSet<K> {
     /// Inserts a key into the set.  
     ///
     /// # Example
@@ -296,7 +296,7 @@ impl<K> IndexTreeSet<K> {
     }
 }
 
-impl<K: Ord + Clone> IndexTreeSet<K> {
+impl<K: Ord> IndexTreeSet<K> {
     /// Removes an item from the map from its corresponding key, returning the key-value pair that was previously in the map.
     ///
     /// # Example
@@ -315,7 +315,7 @@ impl<K: Ord + Clone> IndexTreeSet<K> {
     }
 }
 
-impl<K: Ord + Clone> IndexTreeSet<K> {
+impl<K: Ord> IndexTreeSet<K> {
     /// Removes an item from the map from its corresponding index, returning the key-value pair that was previously in the map.
     ///
     /// # Example
@@ -334,7 +334,7 @@ impl<K: Ord + Clone> IndexTreeSet<K> {
     }
 }
 
-impl<K: Ord + Clone> IndexTreeSet<K> {
+impl<K: Ord> IndexTreeSet<K> {
     /// Splits the map into two at the given key. Returns everything after the given key, including the key.
     ///
     /// # Example
@@ -790,7 +790,7 @@ impl<K: Ord, V> IndexTreeMap<K, V> {
     }
 }
 
-impl<K: Ord + Clone, V> IndexTreeMap<K, V> {
+impl<K: Ord, V> IndexTreeMap<K, V> {
     /// Inserts a key-value pair into the map.  
     ///
     /// # Example
@@ -883,7 +883,7 @@ impl<K, V> IndexTreeMap<K, V> {
     }
 }
 
-impl<K: Ord + Clone, V> IndexTreeMap<K, V> {
+impl<K: Ord, V> IndexTreeMap<K, V> {
     /// Removes an item from the map from its corresponding key, returning the key-value pair that was previously in the map.
     ///
     /// # Example
@@ -908,7 +908,7 @@ impl<K: Ord + Clone, V> IndexTreeMap<K, V> {
     }
 }
 
-impl<K: Ord + Clone, V> IndexTreeMap<K, V> {
+impl<K: Ord, V> IndexTreeMap<K, V> {
     /// Removes an item from the map from its corresponding index, returning the key-value pair that was previously in the map.
     ///
     /// # Example
@@ -933,7 +933,7 @@ impl<K: Ord + Clone, V> IndexTreeMap<K, V> {
     }
 }
 
-impl<K: Ord + Clone, V> IndexTreeMap<K, V> {
+impl<K: Ord, V> IndexTreeMap<K, V> {
     /// Replaces an item from the map from it's corresponding key, returning the key-value pair was previously in the map.
     ///
     /// # Example
@@ -952,8 +952,8 @@ impl<K: Ord + Clone, V> IndexTreeMap<K, V> {
     }
 }
 
-impl<K: Ord + Clone, V> IndexTreeMap<K, V> {
-    /// Replaces an item from the map from it's corresponding index, returning the key-value pair was previously in the map.
+impl<K: Ord, V> IndexTreeMap<K, V> {
+    /// Replaces an item from the map from it's corresponding index.
     ///
     /// # Example
     ///
@@ -967,14 +967,13 @@ impl<K: Ord + Clone, V> IndexTreeMap<K, V> {
     /// assert_eq!(tree.get(&1), Some(&"b".to_string()));
     /// ```
     pub fn replace_index(&mut self, index: usize, value: V) {
-        if self.contains_index(index) {
-            let key = self.get_key_from_index(index).unwrap();
-            self.root.insert(key.to_owned(), value);
+        if let Some(v) = self.get_mut_from_index(index) {
+            *v = value;
         }
     }
 }
 
-impl<K: Ord + Clone, V> IndexTreeMap<K, V> {
+impl<K: Ord, V> IndexTreeMap<K, V> {
     /// Splits the map into two at the given key. Returns everything after the given key, including the key.
     ///
     /// # Example

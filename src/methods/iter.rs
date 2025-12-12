@@ -6,7 +6,7 @@ pub struct IndexTreeIterator<'a, K, V> {
     pub index: usize,
 }
 
-impl<'a, K: Ord + Clone, V> Iterator for IndexTreeIterator<'a, K, V> {
+impl<'a, K: Ord, V> Iterator for IndexTreeIterator<'a, K, V> {
     type Item = (&'a K, &'a V);
 
     fn next(&mut self) -> Option<Self::Item> {
@@ -24,7 +24,7 @@ pub struct IndexTreeSetIterator<'a, K> {
     pub index: usize,
 }
 
-impl<'a, K: Ord + Clone> Iterator for IndexTreeSetIterator<'a, K> {
+impl<'a, K: Ord> Iterator for IndexTreeSetIterator<'a, K> {
     type Item = &'a K;
 
     fn next(&mut self) -> Option<Self::Item> {
@@ -77,13 +77,13 @@ impl<'a, K: Ord + Clone> Iterator for IndexTreeSetIterator<'a, K> {
 // }
 
 // FromIter
-impl<K: Ord + Clone, V> IndexTreeMap<K, V> {
+impl<K: Ord, V> IndexTreeMap<K, V> {
     fn add(&mut self, item: (K, V)) {
         self.insert(item.0, item.1);
     }
 }
 
-impl<K: Ord + Clone, V> FromIterator<(K, V)>
+impl<K: Ord, V> FromIterator<(K, V)>
     for IndexTreeMap<K, V>
 {
     fn from_iter<I: IntoIterator<Item = (K, V)>>(iter: I) -> Self {
@@ -103,7 +103,7 @@ pub struct IndexTreeKeys<'a, K, V> {
     pub index: usize,
 }
 
-impl<'a, K: Ord + Clone, V> Iterator for IndexTreeKeys<'a, K, V> {
+impl<'a, K: Ord, V> Iterator for IndexTreeKeys<'a, K, V> {
     type Item = &'a K;
 
     fn next(&mut self) -> Option<Self::Item> {
@@ -121,7 +121,7 @@ pub struct IndexTreeValues<'a, K, V> {
     pub index: usize,
 }
 
-impl<'a, K: Ord + Clone, V> Iterator for IndexTreeValues<'a, K, V> {
+impl<'a, K: Ord, V> Iterator for IndexTreeValues<'a, K, V> {
     type Item = &'a V;
 
     fn next(&mut self) -> Option<Self::Item> {
