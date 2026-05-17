@@ -1,4 +1,5 @@
 # indextreemap
+
 IndexTreeMap is an ordered tree map based on the rust standard library BTreeMap,
 that allows for items to be accessed by key, value, or position in the tree.
 
@@ -8,8 +9,54 @@ by position or key in logarithmic time.
 
 When compared to the standard library BTreeMap (std::collections::BTreeMap),
 for operations that require changes in memory allocation (insert, remove, etc...)
-the IndexTreeMap is slower. However, when referencing data already allocated in 
+the IndexTreeMap is slower. However, when referencing data already allocated in
 memory, the IndexTreeMap is equivalent or faster.
+
+## 0.2 highlights
+
+Version 0.2 adds APIs for large ordered indexes whose values live behind shared
+handles:
+
+- `SharedIndexTreeMap<K, V>` gives O(1) snapshot clones by sharing an
+  `IndexTreeMap` behind an `Arc`.
+- `iter_ref`, `keys_ref`, and `values_ref` borrow entries without requiring
+  `K: Clone` or `V: Clone`.
+- `union_from` and `try_union_from` merge shared maps by key. The checked form
+  rejects duplicate keys with unequal values. These union helpers use a
+  sorted-stream merge and bulk tree builder instead of repeatedly inserting
+  every missing key.
+- `IndexTreeMap::try_from_sorted_unique_iter` bulk-builds a tree from entries
+  that are already sorted by unique key.
+- `hash_keys_ordered` streams ordered keys into a caller-provided digest without
+  building a temporary key buffer.
+- `serialize_entries_ordered` streams borrowed key/value pairs to caller-owned
+  serialization code.
+- The optional `fast-hash` feature enables deterministic XXH3 helpers for
+  non-cryptographic ordered key fingerprints.
+
+For zero-copy payload behavior, store large values as shared handles such as
+`Arc<T>` or byte buffers. Cloning `SharedIndexTreeMap` does not clone the tree or
+payloads. Mutating a shared snapshot currently clones the tree/key structure
+before applying the mutation, but shared value handles continue pointing at the
+same payloads.
+
+```rust
+use std::sync::Arc;
+
+use indextreemap::SharedIndexTreeMap;
+
+let mut map = SharedIndexTreeMap::new();
+map.insert(7, Arc::new(vec![1, 2, 3, 4]));
+
+let snapshot = map.clone();
+assert!(Arc::ptr_eq(map.get(&7).unwrap(), snapshot.get(&7).unwrap()));
+```
+
+Enable the fast non-cryptographic hasher with:
+
+```toml
+indextreemap = { version = "0.2", features = ["fast-hash"] }
+```
 <!-- 
 ---
 

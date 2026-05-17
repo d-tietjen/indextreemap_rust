@@ -5,7 +5,7 @@ use crate::{
     KEY_ARRAY, POINTER_ARRAY,
 };
 
-impl<K: Ord + Clone, V: Clone> Node<K, V> {
+impl<K: Ord, V> Node<K, V> {
     pub fn split_off(&mut self, key: &K) -> Option<Pointer<K, V>> {
         for (index, item) in self.keys.iter().enumerate() {
             if let Some(item) = item {
@@ -110,7 +110,7 @@ impl<K: Ord + Clone, V: Clone> Node<K, V> {
                     }
 
                     if index == 0 {
-                        if self.keys[index].is_some() {
+                        if self.keys[loc].is_some() {
                             let mut output = self.split_at_index(loc);
                             output.fill_first_pointer();
                             output.n = output.keys.iter().filter(|item| item.is_some()).count();
@@ -223,7 +223,7 @@ impl<K: Ord + Clone, V: Clone> Node<K, V> {
     }
 }
 
-impl<K: Clone, V: Clone> Node<K, V> {
+impl<K, V> Node<K, V> {
     pub fn split_root(&mut self) {
         let new_root_key = self.keys[KEY_ARRAY / 2].take();
 
@@ -290,7 +290,7 @@ impl<K: Clone, V: Clone> Node<K, V> {
         new_node.pointers[counter] = self.pointers[KEY_ARRAY].take();
 
         self.n = self.keys.iter().filter(|k| k.is_some()).count();
-        new_node.n = self.keys.iter().filter(|k| k.is_some()).count();
+        new_node.n = new_node.keys.iter().filter(|k| k.is_some()).count();
 
         let size = new_node.size();
 

@@ -1,8 +1,8 @@
 [package]
 name = "indextreemap"
-version = "0.1.25"
+version = "0.2.0"
 edition = "2021"
-description = "A BTreeMap implementation that allows for key and or positional insertion and retreival."
+description = "A BTreeMap-like ordered map with key and positional lookup."
 categories = ["data-structures"]
 license = "MIT"
 readme = "README.md"
@@ -12,9 +12,11 @@ keywords = ["tree", "btree", "btreemap", "index", "indexing"]
 
 [dependencies]
 serde = { version = "1.0", features = ["derive"], optional = true }
+xxhash-rust = { version = "0.8.12", features = ["xxh3"], optional = true }
 
 [features]
 default = ["serde"]
+fast-hash = ["dep:xxhash-rust"]
 serde = ["dep:serde"]
 
 [dev-dependencies]
@@ -28,4 +30,12 @@ hex-literal = "0.4.1"
 
 [[bench]]
 name = "benches"
+harness = false
+
+[[bench]]
+name = "harness"
+harness = false
+
+[[bench]]
+name = "million"
 harness = false

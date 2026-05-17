@@ -9,7 +9,7 @@ pub enum Output<K, V> {
     Null,
     KeyIsNew,
     KeyExists,
-    NewKeyPointer(Option<Box<Item<K, V>>>, Option<Pointer<K, V>>),
+    NewKeyPointer(Option<Item<K, V>>, Option<Pointer<K, V>>),
 }
 
 #[derive(Debug, Clone, Default)]
@@ -31,7 +31,7 @@ impl<K, V> Pointer<K, V> {
 #[derive(Debug, Clone)]
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
 pub struct Node<K, V> {
-    pub keys: [Option<Box<Item<K, V>>>; KEY_ARRAY],
+    pub keys: [Option<Item<K, V>>; KEY_ARRAY],
     pub n: usize, // the number of keys stored in the node
     pub leaf: bool,
     pub pointers: [Option<Pointer<K, V>>; POINTER_ARRAY],
@@ -70,30 +70,26 @@ impl<K, V> Node<K, V> {
     }
 
     pub fn size(&self) -> usize {
-        let mut count = 0;
-        count += self.keys.iter().filter(|key| key.is_some()).count();
-        for p in &self.pointers {
-            match p {
-                Some(p) => count += p.counter,
-                None => continue,
-            }
-        }
-        count
+        let key_count = self.keys.iter().filter(|key| key.is_some()).count();
+        let pointer_count = self
+            .pointers
+            .iter()
+            .filter_map(|pointer| pointer.as_ref().map(|pointer| pointer.counter))
+            .sum::<usize>();
+
+        key_count + pointer_count
     }
 }
 
 #[derive(Debug, Clone)]
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
 pub struct Item<K, V> {
-    pub key: Box<K>,
-    pub value: Box<V>,
+    pub key: K,
+    pub value: V,
 }
 
 impl<K, V> Item<K, V> {
     pub fn new(key: K, value: V) -> Item<K, V> {
-        Item {
-            key: Box::new(key),
-            value: Box::new(value),
-        }
+        Item { key, value }
     }
 }
