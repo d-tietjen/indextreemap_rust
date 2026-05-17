@@ -2,7 +2,7 @@ use std::cmp::Ordering::{Equal, Greater, Less};
 
 use crate::{stc::Node, KEY_ARRAY};
 
-impl<K: Ord, V: Clone> Node<K, V> {
+impl<K: Ord, V> Node<K, V> {
     pub fn replace(&mut self, key: &K, value: V) -> Option<V> {
         'search: for (index, item) in self.keys.iter_mut().enumerate() {
             match item {
@@ -15,9 +15,7 @@ impl<K: Ord, V: Clone> Node<K, V> {
                         }
                     }
                     Equal => {
-                        let removed_value = Some(*item.value.clone());
-                        item.value = Box::new(value);
-                        return removed_value;
+                        return Some(std::mem::replace(&mut item.value, value));
                     }
                     Greater => {
                         if index >= KEY_ARRAY - 1 {
@@ -48,8 +46,8 @@ impl<K, V: Copy> Node<K, V> {
     pub fn replace_from_index(&mut self, mut index: usize, value: V) -> Option<V> {
         if self.leaf {
             if let Some(item) = self.keys[index].as_mut() {
-                let removed_value = Some(*item.value);
-                item.value = Box::new(value);
+                let removed_value = Some(item.value);
+                item.value = value;
                 removed_value
             } else {
                 None
@@ -65,8 +63,8 @@ impl<K, V: Copy> Node<K, V> {
                         };
                         if index == 0 {
                             if let Some(item) = self.keys[loc].as_mut() {
-                                let removed_value = Some(*item.value);
-                                item.value = Box::new(value);
+                                let removed_value = Some(item.value);
+                                item.value = value;
                                 return removed_value;
                             } else {
                                 return None;

@@ -4,8 +4,8 @@ use crate::{
 };
 
 impl<K, V> Node<K, V> {
-    pub fn take_keys(&mut self) -> [Option<Box<Item<K, V>>>; KEY_ARRAY] {
-        let mut array: [Option<Box<Item<K, V>>>; KEY_ARRAY] = Default::default();
+    pub fn take_keys(&mut self) -> [Option<Item<K, V>>; KEY_ARRAY] {
+        let mut array: [Option<Item<K, V>>; KEY_ARRAY] = Default::default();
 
         #[allow(clippy::needless_range_loop)]
         for index in 0..KEY_ARRAY {
@@ -25,7 +25,7 @@ impl<K, V> Node<K, V> {
 }
 
 impl<K: Ord, V> Node<K, V> {
-    pub fn take_last_key(&mut self) -> Option<Box<Item<K, V>>> {
+    pub fn take_last_key(&mut self) -> Option<Item<K, V>> {
         for index in (0..KEY_ARRAY).rev() {
             match &self.keys[index] {
                 Some(_) => {

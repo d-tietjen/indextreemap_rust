@@ -8,7 +8,7 @@ use crate::{
 };
 use std::cmp::Ordering::{Equal, Greater, Less};
 
-impl<K: Ord + Clone, V: Clone> Node<K, V> {
+impl<K: Ord, V> Node<K, V> {
     pub fn insert(&mut self, key: K, value: V) -> Output<K, V> {
         // if node is a leaf then the node has no pointers
 
@@ -24,7 +24,7 @@ impl<K: Ord + Clone, V: Clone> Node<K, V> {
                 //     Err(index) => match &self.keys[index] {
                 //         Some(_) => self.insert_to_keys(index, key, value),
                 //         None => {
-                //             self.keys[index] = Some(Box::new(Item::new(key, value)));
+                //             self.keys[index] = Some(Item::new(key, value));
                 //             self.n += 1;
                 //         }
                 //     },
@@ -38,13 +38,13 @@ impl<K: Ord + Clone, V: Clone> Node<K, V> {
                                 break;
                             }
                             Equal => {
-                                k.value = Box::new(value);
+                                k.value = value;
                                 return KeyExists;
                             }
                             Greater => continue 'search,
                         }
                     } else {
-                        self.keys[index] = Some(Box::new(Item::new(key, value)));
+                        self.keys[index] = Some(Item::new(key, value));
                         self.n += 1;
                         break;
                     }
@@ -87,7 +87,7 @@ impl<K: Ord + Clone, V: Clone> Node<K, V> {
                                 }
                             }
                             Equal => {
-                                k.value = Box::new(value);
+                                k.value = value;
                                 return KeyExists;
                             }
                             Greater => {
@@ -126,7 +126,7 @@ impl<K: Ord + Clone, V: Clone> Node<K, V> {
     pub fn insert_key_pointer(
         &mut self,
         index: usize,
-        key: Option<Box<Item<K, V>>>,
+        key: Option<Item<K, V>>,
         pointer: Option<Pointer<K, V>>,
     ) -> Output<K, V> {
         let (_, key_right) = self.keys.split_at_mut(index);
@@ -150,15 +150,11 @@ impl<K: Ord + Clone, V: Clone> Node<K, V> {
     pub fn insert_to_keys(&mut self, index: usize, key: K, value: V) {
         let (_, right) = self.keys.split_at_mut(index);
         right.rotate_right(1);
-        right[0] = Some(Box::new(Item::new(key, value)));
+        right[0] = Some(Item::new(key, value));
         self.n += 1;
     }
 
-    pub fn update_root(
-        &mut self,
-        new_key: Option<Box<Item<K, V>>>,
-        new_pointer: Option<Pointer<K, V>>,
-    ) {
+    pub fn update_root(&mut self, new_key: Option<Item<K, V>>, new_pointer: Option<Pointer<K, V>>) {
         let mut new_child = Node {
             keys: Default::default(),
             pointers: Default::default(),

@@ -3,134 +3,94 @@ use std::cmp::Ordering::{Equal, Greater, Less};
 use crate::{stc::Node, KEY_ARRAY};
 
 impl<K: Ord, V> Node<K, V> {
+    #[inline]
     pub fn get(&self, key: &K) -> Option<(&K, &V)> {
-        'search: for index in 0..KEY_ARRAY {
-            match &self.keys[index] {
-                Some(item) => match key.cmp(&item.key) {
-                    Less => {
-                        if let Some(pointer) = &self.pointers[index] {
-                            return pointer.child.get(key);
-                        } else {
-                            return None;
-                        }
-                    }
-                    Equal => return Some((item.key.as_ref(), item.value.as_ref())),
-                    Greater => {
-                        if index >= KEY_ARRAY - 1 {
-                            if let Some(pointer) = &self.pointers[index + 1] {
-                                return pointer.child.get(key);
-                            } else {
-                                return None;
-                            }
-                        } else {
-                            continue 'search;
-                        }
-                    }
-                },
-                None => {
-                    if let Some(pointer) = &self.pointers[index] {
-                        return pointer.child.get(key);
-                    } else {
-                        return None;
-                    }
-                }
-            }
+        match self.search_key(key) {
+            Ok(index) => self.keys[index]
+                .as_ref()
+                .map(|item| (&item.key, &item.value)),
+            Err(index) => self.pointers[index]
+                .as_ref()
+                .and_then(|pointer| pointer.child.get(key)),
         }
-        None
     }
 
+    #[inline]
     pub fn get_index_from_key(&self, key: &K, mut usize: usize) -> Option<usize> {
-        'search: for index in 0..KEY_ARRAY {
-            match &self.keys[index] {
-                Some(item) => match key.cmp(&item.key) {
-                    Less => {
-                        if let Some(pointer) = &self.pointers[index] {
-                            return pointer.child.get_index_from_key(key, usize);
-                        } else {
-                            return None;
-                        }
-                    }
-                    Equal => {
-                        if let Some(pointer) = &self.pointers[index] {
-                            return Some(usize + pointer.counter);
-                        } else {
-                            return Some(usize);
-                        }
-                    }
-
-                    Greater => {
-                        if index >= KEY_ARRAY - 1 {
-                            if let Some(pointer) = &self.pointers[index + 1] {
-                                return pointer.child.get_index_from_key(key, usize);
-                            } else {
-                                return None;
-                            }
-                        } else {
-                            usize += if let Some(pointer) = &self.pointers[index] {
-                                pointer.counter
-                            } else {
-                                0
-                            };
-                            usize += 1;
-                            continue 'search;
-                        }
-                    }
-                },
-                None => {
-                    if let Some(pointer) = &self.pointers[index] {
-                        return pointer.child.get_index_from_key(key, usize);
-                    } else {
-                        return None;
-                    }
+        match self.search_key(key) {
+            Ok(index) => {
+                for loc in 0..index {
+                    usize += self.pointers[loc]
+                        .as_ref()
+                        .map(|pointer| pointer.counter)
+                        .unwrap_or(0);
+                    usize += 1;
                 }
+                usize += self.pointers[index]
+                    .as_ref()
+                    .map(|pointer| pointer.counter)
+                    .unwrap_or(0);
+                Some(usize)
+            }
+            Err(index) => {
+                for loc in 0..index {
+                    usize += self.pointers[loc]
+                        .as_ref()
+                        .map(|pointer| pointer.counter)
+                        .unwrap_or(0);
+                    usize += 1;
+                }
+                self.pointers[index]
+                    .as_ref()
+                    .and_then(|pointer| pointer.child.get_index_from_key(key, usize))
             }
         }
-        None
     }
 
+    #[inline]
     pub fn get_mut(&mut self, key: &K) -> Option<(&mut K, &mut V)> {
-        'search: for (index, item) in self.keys.iter_mut().enumerate() {
-            match item {
-                Some(item) => match key.cmp(&item.key) {
-                    Less => {
-                        if let Some(pointer) = self.pointers[index].as_mut() {
-                            return pointer.child.get_mut(key);
-                        } else {
-                            return None;
-                        }
-                    }
-                    Equal => return Some((item.key.as_mut(), item.value.as_mut())),
-                    Greater => {
-                        if index >= KEY_ARRAY - 1 {
-                            if let Some(pointer) = self.pointers[index + 1].as_mut() {
-                                return pointer.child.get_mut(key);
-                            } else {
-                                return None;
-                            }
-                        } else {
-                            continue 'search;
-                        }
-                    }
-                },
-                None => {
-                    if let Some(pointer) = self.pointers[index].as_mut() {
-                        return pointer.child.get_mut(key);
-                    } else {
-                        return None;
-                    }
-                }
+        match self.search_key(key) {
+            Ok(index) => self.keys[index]
+                .as_mut()
+                .map(|item| (&mut item.key, &mut item.value)),
+            Err(index) => self.pointers[index]
+                .as_mut()
+                .and_then(|pointer| pointer.child.get_mut(key)),
+        }
+    }
+}
+
+impl<K: Ord, V> Node<K, V> {
+    #[inline]
+    fn search_key(&self, key: &K) -> Result<usize, usize> {
+        let mut low = 0;
+        let mut high = self.n;
+
+        while low < high {
+            let mid = (low + high) / 2;
+            let Some(item) = self.keys[mid].as_ref() else {
+                high = mid;
+                continue;
+            };
+
+            match key.cmp(&item.key) {
+                Less => high = mid,
+                Equal => return Ok(mid),
+                Greater => low = mid + 1,
             }
         }
-        None
+
+        Err(low)
     }
 }
 
 impl<K, V> Node<K, V> {
+    #[inline]
     pub fn get_from_index(&self, mut index: usize) -> Option<(&K, &V)> {
         if self.leaf {
             self.keys[index]
                 .as_ref()
-                .map(|item| (item.key.as_ref(), item.value.as_ref()))
+                .map(|item| (&item.key, &item.value))
         } else {
             for loc in 0..KEY_ARRAY {
                 if let Some(pointer) = &self.pointers[loc] {
@@ -140,9 +100,7 @@ impl<K, V> Node<K, V> {
                         index -= pointer.counter
                     };
                     if index == 0 {
-                        return self.keys[loc]
-                            .as_ref()
-                            .map(|item| (item.key.as_ref(), item.value.as_ref()));
+                        return self.keys[loc].as_ref().map(|item| (&item.key, &item.value));
                     } else {
                         index -= 1;
                         continue;
@@ -155,11 +113,12 @@ impl<K, V> Node<K, V> {
         }
     }
 
+    #[inline]
     pub fn get_mut_from_index(&mut self, mut index: usize) -> Option<(&mut K, &mut V)> {
         if self.leaf {
             self.keys[index]
                 .as_mut()
-                .map(|item| (item.key.as_mut(), item.value.as_mut()))
+                .map(|item| (&mut item.key, &mut item.value))
         } else {
             for (loc, pointer) in self.pointers.iter_mut().enumerate() {
                 match pointer {
@@ -172,7 +131,7 @@ impl<K, V> Node<K, V> {
                         if index == 0 {
                             return self.keys[loc]
                                 .as_mut()
-                                .map(|item| (item.key.as_mut(), item.value.as_mut()));
+                                .map(|item| (&mut item.key, &mut item.value));
                         } else {
                             index -= 1;
                             continue;

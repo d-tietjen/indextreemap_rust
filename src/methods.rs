@@ -1,3 +1,4 @@
+pub mod bulk;
 pub mod get;
 pub mod insert;
 pub mod iter;

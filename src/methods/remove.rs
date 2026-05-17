@@ -2,7 +2,7 @@ use std::cmp::Ordering::{Equal, Greater, Less};
 
 use crate::{stc::Node, KEY_ARRAY, POINTER_ARRAY};
 
-impl<K: Ord + Clone, V: Clone> Node<K, V> {
+impl<K: Ord, V> Node<K, V> {
     pub fn remove(&mut self, key: &K) -> Option<(K, V)> {
         if self.leaf {
             'search: for index in 0..KEY_ARRAY {
@@ -71,12 +71,16 @@ impl<K: Ord + Clone, V: Clone> Node<K, V> {
             for loc in 0..KEY_ARRAY {
                 if let Some(pointer) = self.pointers[loc].as_mut() {
                     if index < pointer.counter {
-                        return pointer.child.remove_index(index);
+                        let output = pointer.child.remove_index(index);
+                        if output.is_some() {
+                            pointer.counter -= 1;
+                        }
+                        return output;
                     } else {
                         index -= pointer.counter
                     };
                     if index == 0 {
-                        return self.node_remove_key(index);
+                        return self.node_remove_key(loc);
                     } else {
                         index -= 1;
                         continue;
@@ -93,7 +97,7 @@ impl<K: Ord + Clone, V: Clone> Node<K, V> {
 impl<K: Ord, V> Node<K, V> {
     pub fn node_remove_key(&mut self, index: usize) -> Option<(K, V)> {
         // if both pointer children pointers[index] + pointers[index+1] are less than KEY_ARRAY, then we can merge the right pointer to the left pointer
-        let output = self.keys[index].take().map(|item| (*item.key, *item.value));
+        let output = self.keys[index].take().map(|item| (item.key, item.value));
         if output.is_some() {
             self.n -= 1;
         }
@@ -182,7 +186,7 @@ impl<K: Ord, V> Node<K, V> {
     }
 
     pub fn leaf_remove_key(&mut self, index: usize) -> Option<(K, V)> {
-        let output = self.keys[index].take().map(|item| (*item.key, *item.value));
+        let output = self.keys[index].take().map(|item| (item.key, item.value));
         if output.is_some() {
             self.n -= 1;
         }
